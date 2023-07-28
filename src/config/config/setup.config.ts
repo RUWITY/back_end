@@ -19,8 +19,8 @@ export class SetUpConfig {
 
   protected swaggerConfig() {
     const config = new DocumentBuilder()
-      .setTitle('POTEN_DAY SWAGGER')
-      .setDescription('poten day API description')
+      .setTitle('GROWTHON SWAGGER')
+      .setDescription('Growthon API description')
       .setVersion('3.0.0')
       .addBearerAuth(
         {
@@ -45,12 +45,7 @@ export class SetUpConfig {
 
     const document = SwaggerModule.createDocument(this.app, config);
 
-    SwaggerModule.setup(
-      'swagger/potenday306',
-      this.app,
-      document,
-      swaggerOptions,
-    );
+    SwaggerModule.setup('swagger/ruwity', this.app, document, swaggerOptions);
   }
 
   protected setCORS() {

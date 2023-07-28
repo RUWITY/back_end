@@ -17,6 +17,8 @@ export default registerAs('kakao', () => {
     redirect_front_url: process.env.REDIRECT_FRONT_URI,
   };
 
+  console.log(config);
+
   const { error, value } = schema.validate(config, {
     abortEarly: false,
     convert: true,
