@@ -2,7 +2,7 @@
 # Dpendencies 설치 환경 (deps)
 FROM node:18.12.1-alpine AS deps
 
-WORKDIR /usr/src/306_poten_day/app
+WORKDIR /usr/src/r_u_wity_back/app
 
 COPY ./package*.json yarn.lock nest-cli.json tsconfig.json ./
 # COPY src/envs/production.env /app/envs/production.env
@@ -11,7 +11,7 @@ COPY ./package*.json yarn.lock nest-cli.json tsconfig.json ./
 COPY . .
 
 RUN npm install -g @nestjs/cli
-RUN yarn
+RUN yarn 
 RUN yarn build
 
 # COPY . .
@@ -22,11 +22,11 @@ RUN yarn build
 FROM node:16.16.0 AS runner
 
 
-WORKDIR /usr/src/306_poten_day/app
+WORKDIR /usr/src/r_u_wity_back/app
 
-COPY --from=deps /usr/src/306_poten_day/app/dist ./dist
-COPY --from=deps /usr/src/306_poten_day/app/src/envs ./src/envs
-COPY --from=deps /usr/src/306_poten_day/app/node_modules ./node_modules
+COPY --from=deps /usr/src/r_u_wity_back/app/dist ./dist
+COPY --from=deps /usr/src/r_u_wity_back/app/src/envs ./src/envs
+COPY --from=deps /usr/src/r_u_wity_back/app/node_modules ./node_modules
 # COPY src/envs/production.env ./src/envs/production.env
 
 CMD ["node", "dist/main"]
