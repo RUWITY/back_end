@@ -5,7 +5,7 @@ services:
     container_name: server
     image: jimin8830/potenday:ruwity
     volumes:
-      - /usr/src/potenday/app/node_modules
+      - /usr/src/ruwity_back/app/node_modules
     ports:
       - 3000:3000
     restart: always
