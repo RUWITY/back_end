@@ -28,8 +28,6 @@ export class JwtAccessAuthGuard implements CanActivate {
       secret: process.env.JWT_ACCESS_SECRET,
     });
 
-    console.log('decodedToken', token);
-
     const currentTimestamp = Math.floor(Date.now() / 1000);
     // 토큰이 만료된 경우
     if (decodedToken.exp && decodedToken.exp < currentTimestamp) {

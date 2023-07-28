@@ -7,7 +7,7 @@ export class JwtKakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
       clientID: process.env.REST_API,
       clientSecret: process.env.CLIENT_SECRET,
       callbackURL: process.env.REDIRECT_URI,
-      scope: ['profile_image', 'profile_nickname'],
+      scope: [],
     });
   }
 
@@ -16,8 +16,8 @@ export class JwtKakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
       accessToken: accessToken,
       refreshToken: refreshToken,
       kakao_id: profile._json.id,
-      nickname: profile._json.properties.nickname,
-      profile_image: profile._json.properties.profile_image,
+      // nickname: profile._json.properties.nickname,
+      // profile_image: profile._json.properties.profile_image,
     };
   }
 }

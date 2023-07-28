@@ -6,6 +6,7 @@ import { UserTokenEntity } from './entities/user_token.entity';
 import { CreateUserUserDto } from './dto/create-user_user.dto';
 import { plainToInstance } from 'class-transformer';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserInfoDto } from './dto/create-user-info.dto';
 
 @Injectable()
 export class UserUserService {
@@ -84,6 +85,31 @@ export class UserUserService {
     });
   }
 
+  async saveUserInfo(id: number, dto: CreateUserInfoDto) {
+    const updateResult = await this.userRepository.update(id, {
+      nickname: dto?.nickname,
+      profile: dto?.profile,
+      explanation: dto?.explanation,
+    });
+
+    return updateResult;
+  }
+
+  async getUserInfo(id: number) {
+    const findResult = await this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    return {
+      profile: findResult.profile,
+      nickname: findResult.nickname,
+      explanation: findResult.explanation,
+    };
+  }
+
+  //지워도 됨
   async updateUserName(id: number, name: string): Promise<UpdateResult> {
     const updateResult = await this.userRepository.update(id, {
       nickname: name,
@@ -92,6 +118,7 @@ export class UserUserService {
     return updateResult;
   }
 
+  //지워도 됨
   async upsertUserExplanation(
     id: number,
     explanation: string,

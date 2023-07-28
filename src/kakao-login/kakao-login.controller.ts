@@ -16,8 +16,6 @@ export class KakaoLoginController {
   })
   @Get()
   async redirectToKakaoLogin(@Res() response: Response) {
-    console.log('df', process.env.REST_API);
-
     const redirect_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.REST_API}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code`;
     response.redirect(HttpStatus.MOVED_PERMANENTLY, redirect_URL);
   }
@@ -28,7 +26,6 @@ export class KakaoLoginController {
     @CtxUser() kakao_user: KakaoLoginUserDto,
     @Res() response: Response,
   ) {
-    console.log('ddd');
     const { access_token, refresh_token } =
       await this.kakaoLoginService.kakaoLogin(kakao_user);
 

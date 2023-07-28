@@ -5,9 +5,10 @@ import { KakaoLoginModule } from './kakao-login/kakao-login.module';
 import { UserUserModule } from './user_user/user_user.module';
 import { EntitiesModule } from './entity.module';
 import { SettingModule } from './config/config.module';
+import { UserUrlModule } from './user_url/user_url.module';
 
 @Module({
-  imports: [KakaoLoginModule, UserUserModule, EntitiesModule, SettingModule],
+  imports: [KakaoLoginModule, UserUserModule, EntitiesModule, SettingModule, UserUrlModule],
   controllers: [AppController],
   providers: [AppService],
 })

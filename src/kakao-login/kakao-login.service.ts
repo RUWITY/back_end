@@ -18,8 +18,8 @@ export class KakaoLoginService {
     if (!findResult) {
       const data = new CreateUserUserDto({
         kakao_id: kakao_id,
-        nickname: nickname,
-        profile: profile_image,
+        // nickname: nickname,
+        // profile: profile_image,
       });
 
       saveResult = await this.userService.saveUser(data);
@@ -28,7 +28,6 @@ export class KakaoLoginService {
     const access_token = await this.userService.generateAccessToken(
       findResult?.id || saveResult.id,
     );
-    console.log('access_token', access_token);
 
     const refresh_token = await this.userService.generateRefreshToken(
       findResult?.id || saveResult.id,

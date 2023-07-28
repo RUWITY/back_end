@@ -4,7 +4,6 @@ import {
   Get,
   InternalServerErrorException,
   Patch,
-  Post,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -15,6 +14,7 @@ import { JwtAccessAuthGuard } from 'src/kakao-login/jwt-access.guard';
 import { UserUserService } from './user_user.service';
 import { updateUserName } from './dto/update-user-name.dto';
 import { upsertUserExplanation } from './dto/upsert-user-explanation.dto';
+import { CreateUserInfoDto } from './dto/create-user-info.dto';
 
 @ApiTags('유저 API')
 @Controller('user-user')
@@ -24,39 +24,24 @@ export class UserUserController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
-    summary: '닉네임 변경',
+    summary: '유저 닉네임, 한 줄 표현, 프로필(개발 미완) 저장',
   })
-  @Patch('update/nickname')
-  async updateUserName(
+  @Patch()
+  async saveUserInfo(
     @CtxUser() token: JWTToken,
     @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: updateUserName,
+    dto: CreateUserInfoDto,
   ) {
-    try {
-      return await this.userUserService.updateUserName(token.id, dto.name);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
+    return await this.userUserService.saveUserInfo(token.id, dto);
   }
 
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
-    summary: '한 줄 표현 생성/수정',
+    summary: '유저 정보 출력(프로필(개발 미완),닉네임,한 줄 표현',
   })
-  @Patch('update/explanation')
-  async saveExplanation(
-    @CtxUser() token: JWTToken,
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: upsertUserExplanation,
-  ) {
-    try {
-      return await this.userUserService.upsertUserExplanation(
-        token.id,
-        dto.explanation,
-      );
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
+  @Get()
+  async getUserInfo(@CtxUser() token: JWTToken) {
+    return await this.userUserService.getUserInfo(token.id);
   }
 }

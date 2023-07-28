@@ -29,7 +29,7 @@ export class UserEntity {
   })
   kakao_id: number;
 
-  @Column({ type: 'varchar', length: '6' })
+  @Column({ type: 'varchar', length: '6', nullable: true })
   @IsString()
   @ApiProperty({
     description: 'nickname',
