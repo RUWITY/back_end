@@ -12,7 +12,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { UserTapService } from './user_tap.service';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAccessAuthGuard } from 'src/kakao-login/jwt-access.guard';
 import { CreateUserTapTextDto } from './dto/create-user-tap-text.dto';
 import { JWTToken } from 'src/kakao-login/dto/jwt-token.dto';
@@ -34,10 +34,11 @@ export class UserTapController {
   @ApiOperation({
     summary: 'tap text 생성',
   })
+  @ApiBody({ type: [CreateUserTapTextDto] })
   async saveTapText(
     @CtxUser() token: JWTToken,
     @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: CreateUserTapTextDto,
+    dto: CreateUserTapTextDto[],
   ) {
     try {
       return await this.userTapService.saveTapText(token.id, dto);
@@ -119,10 +120,11 @@ export class UserTapController {
   @ApiOperation({
     summary: 'tap link 생성',
   })
+  @ApiBody({ type: [CreateUserTapLinkDto] })
   async saveTapLink(
     @CtxUser() token: JWTToken,
     @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: CreateUserTapLinkDto,
+    dto: CreateUserTapLinkDto[],
   ) {
     try {
       return await this.userTapService.saveTapLink(token.id, dto);

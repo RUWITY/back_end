@@ -22,17 +22,32 @@ export class UserTapService {
 
   //finish---------
   //text 생성
-  async saveTapText(id: number, dto: CreateUserTapTextDto) {
-    const saveResult = await this.userTapTextRepository.save(
-      new UserTapTextEntity({
-        tap_type: dto.tap_type,
-        context: dto.context,
+  async saveTapText(id: number, dto: CreateUserTapTextDto[]) {
+    // const saveResult = await this.userTapTextRepository.save(
+    //   new UserTapTextEntity({
+    //     tap_type: dto.tap_type,
+    //     context: dto.context,
+    //     user_id: id,
+    //     folded_state: true,
+    //   }),
+    // );
+
+    // return saveResult;
+    const savedEntities: UserTapTextEntity[] = [];
+
+    for (const item of dto) {
+      const entity = new UserTapTextEntity({
+        tap_type: item.tap_type,
+        context: item.context,
         user_id: id,
         folded_state: true,
-      }),
-    );
+      });
 
-    return saveResult;
+      const saveResult = await this.userTapTextRepository.save(entity);
+      savedEntities.push(saveResult);
+    }
+
+    return savedEntities;
   }
 
   //finish---------
@@ -86,18 +101,35 @@ export class UserTapService {
 
   //finish---------
   //link 생성
-  async saveTapLink(id: number, dto: CreateUserTapLinkDto) {
-    const saveResult = await this.userTapLinkRepository.save(
-      new UserTapLinkEntity({
-        tap_type: dto.tap_type,
-        img: dto?.img || '',
-        title: dto?.title || '',
-        url: dto.url,
-        user_id: id,
-      }),
-    );
+  async saveTapLink(id: number, dto: CreateUserTapLinkDto[]) {
+    const savedEntities: UserTapLinkEntity[] = [];
 
-    return saveResult;
+    for (const item of dto) {
+      const entity = new UserTapLinkEntity({
+        tap_type: item.tap_type,
+        img: item?.img || '',
+        title: item?.title || '',
+        url: item.url,
+        user_id: id,
+      });
+
+      const saveResult = await this.userTapLinkRepository.save(entity);
+      savedEntities.push(saveResult);
+    }
+
+    return savedEntities;
+
+    // const saveResult = await this.userTapLinkRepository.save(
+    //   new UserTapLinkEntity({
+    //     tap_type: dto.tap_type,
+    //     img: dto?.img || '',
+    //     title: dto?.title || '',
+    //     url: dto.url,
+    //     user_id: id,
+    //   }),
+    // );
+
+    // return saveResult;
   }
 
   //finish---------
