@@ -24,23 +24,23 @@ import { JWTToken } from 'src/kakao-login/dto/jwt-token.dto';
 export class UserUrlController {
   constructor(private readonly userUrlService: UserUrlService) {}
 
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: '링크 추가',
-  })
-  @Post()
-  async saveUserUrl(
-    @CtxUser() token: JWTToken,
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: CreateUserUrlDto,
-  ) {
-    try {
-      return await this.userUrlService.saveUserUrl(token.id, dto);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: '링크 추가',
+  // })
+  // @Post()
+  // async saveUserUrl(
+  //   @CtxUser() token: JWTToken,
+  //   @Body(new ValidationPipe({ whitelist: true, transform: true }))
+  //   dto: CreateUserUrlDto,
+  // ) {
+  //   try {
+  //     return await this.userUrlService.saveUserUrl(token.id, dto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
   @ApiOperation({
     summary: '링크 클릭 조회수 증가',

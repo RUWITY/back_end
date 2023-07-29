@@ -7,6 +7,9 @@ import { CreateUserUserDto } from './dto/create-user_user.dto';
 import { plainToInstance } from 'class-transformer';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
+import { UserPageEntity } from './entities/user_page.entity';
+import { UserReportDto } from './dto/save-user-report.dto';
+import { UserTodyLinkEntity } from './entities/user_today_link.entity';
 
 @Injectable()
 export class UserUserService {
@@ -18,6 +21,12 @@ export class UserUserService {
     private readonly userTokenRepository: Repository<UserTokenEntity>,
 
     private readonly jwtService: JwtService,
+
+    @InjectRepository(UserPageEntity)
+    private readonly userPageEntityRepository: Repository<UserPageEntity>,
+
+    @InjectRepository(UserTodyLinkEntity)
+    private readonly userTodayLinkEntityRepository: Repository<UserTodyLinkEntity>,
   ) {}
 
   async findOAuthUser(kakao_id: number) {
@@ -85,6 +94,28 @@ export class UserUserService {
     });
   }
 
+  async getUserInfo(id: number) {
+    const findResult = await this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    const findTodayLink = await this.userTodayLinkEntityRepository.findOne({
+      where: {
+        user_id: id,
+      },
+    });
+
+    return {
+      profile: findResult?.profile || null,
+      nickname: findResult?.nickname || null,
+      explanation: findResult?.explanation || null,
+      today_link: findTodayLink?.today_link || null,
+    };
+  }
+
+  //프로필,닉네임, 한줄 설명, 오늘의 링크 없으면 save , 있으면 update
   async saveUserInfo(id: number, dto: CreateUserInfoDto) {
     const updateResult = await this.userRepository.update(id, {
       nickname: dto?.nickname,
@@ -95,30 +126,29 @@ export class UserUserService {
     return updateResult;
   }
 
-  async getUserInfo(id: number) {
+  //닉네임 없으면 save, 있으면 update
+  async updateUserName(id: number, name: string) {
     const findResult = await this.userRepository.findOne({
       where: {
         id: id,
       },
     });
 
-    return {
-      profile: findResult.profile,
-      nickname: findResult.nickname,
-      explanation: findResult.explanation,
-    };
+    if (!findResult) {
+      return await this.userRepository.save(
+        new UserEntity({
+          id: id,
+          nickname: name,
+        }),
+      );
+    } else {
+      return await this.userRepository.update(id, {
+        nickname: name,
+      });
+    }
   }
 
-  //지워도 됨
-  async updateUserName(id: number, name: string): Promise<UpdateResult> {
-    const updateResult = await this.userRepository.update(id, {
-      nickname: name,
-    });
-
-    return updateResult;
-  }
-
-  //지워도 됨
+  //한줄표현 없으면 save, 있으면 update
   async upsertUserExplanation(
     id: number,
     explanation: string,
@@ -141,5 +171,33 @@ export class UserUserService {
         explanation: explanation,
       });
     }
+  }
+
+  async checkPage(url: string) {
+    const findResult = await this.userPageEntityRepository.findOne({
+      where: {
+        page_url: url,
+      },
+    });
+
+    if (findResult) {
+      throw new Error('이미 사용중인 URL입니다.');
+    } else {
+      return true;
+    }
+  }
+
+  async saveGenderAge(id: number, dto: UserReportDto) {
+    const saveReult = await this.userPageEntityRepository.save(
+      new UserPageEntity({
+        user_id: id,
+        page_url: dto.page_url,
+      }),
+    );
+
+    const saveReult2 = await this.userRepository.update(id, {
+      gender: dto?.gender || undefined,
+      age: dto.age,
+    });
   }
 }

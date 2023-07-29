@@ -1,4 +1,11 @@
-import { IsDate, IsNumber, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +15,9 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { UserTokenEntity } from './user_token.entity';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { UserPageEntity } from './user_page.entity';
+import { UserTodyLinkEntity } from './user_today_link.entity';
 
 @Entity('user_user')
 export class UserEntity {
@@ -53,6 +62,26 @@ export class UserEntity {
   })
   explanation: string;
 
+  @Column({ type: 'boolean', nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: '성별(남자true,여자false,표시안함null)',
+    example: 'true',
+  })
+  gender?: boolean;
+
+  @Column({ type: 'int4', nullable: true })
+  @Length(1, 2, {
+    message: '나이는 1자리 이상 2자리 이하 숫자만 입력 가능합니다.',
+  })
+  @IsNumber()
+  @ApiProperty({
+    description: '나이',
+    example: '20',
+  })
+  age: number;
+
   @CreateDateColumn()
   @IsDate()
   created_at: Date;
@@ -62,6 +91,18 @@ export class UserEntity {
     nullable: true,
   })
   token: UserTokenEntity;
+
+  @OneToOne(() => UserPageEntity, (page) => page.user, {
+    cascade: true,
+    nullable: false,
+  })
+  page: UserPageEntity;
+
+  @OneToOne(() => UserTodyLinkEntity, (today) => today.user, {
+    cascade: true,
+    nullable: false,
+  })
+  today_link: UserEntity;
 
   constructor(data: Partial<UserEntity>) {
     Object.assign(this, data);
