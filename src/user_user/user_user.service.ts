@@ -123,6 +123,13 @@ export class UserUserService {
       explanation: dto?.explanation,
     });
 
+    const findResult = await this.userTodayLinkEntityRepository.findOne({
+      where: {
+        user_id: id,
+      },
+    });
+    //TNWJDTN수정수정
+
     return updateResult;
   }
 

@@ -6,9 +6,10 @@ import { UserUserModule } from './user_user/user_user.module';
 import { EntitiesModule } from './entity.module';
 import { SettingModule } from './config/config.module';
 import { UserUrlModule } from './user_url/user_url.module';
+import { UserTapModule } from './user_tap/user_tap.module';
 
 @Module({
-  imports: [KakaoLoginModule, UserUserModule, EntitiesModule, SettingModule, UserUrlModule],
+  imports: [KakaoLoginModule, UserUserModule, EntitiesModule, SettingModule, UserUrlModule, UserTapModule],
   controllers: [AppController],
   providers: [AppService],
 })
