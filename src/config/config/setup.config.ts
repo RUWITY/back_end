@@ -52,6 +52,8 @@ export class SetUpConfig {
     this.app.enableCors({
       origin: [
         'http://localhost:3000',
+        'https://accounts.kakao.com',
+        'https://kauth.kakao.com',
         'https://jade-liger-7be6fa.netlify.app',
       ],
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',

@@ -26,7 +26,7 @@ export class KakaoLoginController {
   @ApiOperation({
     summary: '로그인 리다이렉트 url',
   })
-  @Get()
+  @Get('login')
   async redirectToKakaoLogin(@Res() response: Response) {
     const redirect_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.REST_API}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code`;
     response.redirect(HttpStatus.MOVED_PERMANENTLY, redirect_URL);
