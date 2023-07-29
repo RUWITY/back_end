@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateUserTapLinkDto {
   @IsString()
@@ -10,6 +10,7 @@ export class CreateUserTapLinkDto {
   tap_type: string;
 
   @IsString()
+  @IsOptional()
   @ApiPropertyOptional({
     description: 'img 썸네일',
     example: '.../png',
@@ -17,6 +18,7 @@ export class CreateUserTapLinkDto {
   img: string;
 
   @IsString()
+  @IsOptional()
   @ApiPropertyOptional({
     description: '제목',
     example: '고라니가 수영함',

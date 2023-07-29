@@ -5,6 +5,8 @@ import {
   IsOptional,
   IsString,
   Length,
+  Max,
+  Min,
 } from 'class-validator';
 import {
   Column,
@@ -72,9 +74,6 @@ export class UserEntity {
   gender?: boolean;
 
   @Column({ type: 'int4', nullable: true })
-  @Length(1, 2, {
-    message: '나이는 1자리 이상 2자리 이하 숫자만 입력 가능합니다.',
-  })
   @IsNumber()
   @ApiProperty({
     description: '나이',

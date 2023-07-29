@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateUserTapLinkDto {
   @IsNumber()
@@ -10,6 +10,7 @@ export class UpdateUserTapLinkDto {
   tap_id: number;
 
   @IsString()
+  @IsOptional()
   @ApiPropertyOptional({
     description: '제목 수정 또는 제목 추가',
     example: '링크 제목제목',
@@ -17,6 +18,7 @@ export class UpdateUserTapLinkDto {
   title: string;
 
   @IsString()
+  @IsOptional()
   @ApiPropertyOptional({
     description: '링크 수정',
     example: 'http...',

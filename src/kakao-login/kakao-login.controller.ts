@@ -1,10 +1,22 @@
-import { Controller, Get, HttpStatus, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  InternalServerErrorException,
+  Post,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { KakaoLoginService } from './kakao-login.service';
 import { Response } from 'express';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CtxUser } from 'src/decorator/auth.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { KakaoLoginUserDto } from './dto/kakao-login.dto';
+import { RefreshTokenDto } from './dto/refreshToken.dto';
 
 @ApiTags('로그인 API')
 @Controller('kakao-login')
@@ -31,5 +43,32 @@ export class KakaoLoginController {
 
     const redirectUrl = `http://localhost:3000?access_token=${access_token}&refresh_token=${refresh_token}`;
     response.redirect(302, redirectUrl);
+  }
+
+  @ApiOperation({
+    summary:
+      'access 토큰이 만료되면 refresh 토큰을 이용해서 access 토큰 재발급',
+  })
+  @ApiBody({
+    type: RefreshTokenDto,
+  })
+  @Post('refresh')
+  async refresh(
+    @Body(new ValidationPipe({ whitelist: true, transform: true }))
+    refreshTokenDto: RefreshTokenDto,
+  ) {
+    const { refresh_token } = refreshTokenDto;
+    try {
+      const newAccessToken = (
+        await this.kakaoLoginService.refreshTokencheck(refresh_token)
+      ).accessToken;
+
+      return { access_token: newAccessToken };
+    } catch (e) {
+      if (e instanceof UnauthorizedException)
+        throw new UnauthorizedException(e.message);
+
+      throw new InternalServerErrorException(e.message);
+    }
   }
 }

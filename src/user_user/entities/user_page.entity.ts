@@ -8,7 +8,7 @@ export class UserPageEntity {
   @IsNumber()
   user_id: number;
 
-  @Column({ type: 'varchar', length: '13', nullable: false })
+  @Column({ type: 'varchar', length: '12', nullable: false })
   @IsString()
   page_url: string;
 

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserUrlDto } from './dto/create-user_url.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserUrlEntity } from './entities/user_url.entity';
 import { Repository } from 'typeorm';
@@ -11,20 +10,7 @@ export class UserUrlService {
     private readonly userUrlRepository: Repository<UserUrlEntity>,
   ) {}
 
-  async saveUserUrl(id: number, dto: CreateUserUrlDto) {
-    const saveResult = await this.userUrlRepository.save(
-      new UserUrlEntity({
-        img: dto.img,
-        title: dto.title,
-        url: dto.url,
-        view: 0,
-        user_id: id,
-      }),
-    );
-
-    return saveResult;
-  }
-
+  //finish---------
   async updateUserUrlView(url_id: number) {
     const findOneResult = await this.userUrlRepository.findOne({
       where: {
@@ -33,22 +19,30 @@ export class UserUrlService {
     });
 
     if (!findOneResult) {
-      throw new Error('존재하지 않는 url 아이디 입니다.');
+      throw new Error('존재하지 않는 url_id 입니다.');
     }
 
-    return await this.userUrlRepository.update(url_id, {
+    const updateResult = await this.userUrlRepository.update(url_id, {
       view: findOneResult.view + 1,
     });
+
+    if (!updateResult.affected) throw new Error('view 업데이트 실패');
+
+    return true;
   }
 
+  //finish---------
   async deleteUserUrl(url_id: number) {
     const updateResult = await this.userUrlRepository.update(url_id, {
       delete_at: new Date(Date.now()),
     });
 
-    return updateResult;
+    if (!updateResult.affected) throw new Error('url 삭제 실패');
+
+    return true;
   }
 
+  //finish---------
   async findAllUserUrl(id: number) {
     const findResult = await this.userUrlRepository.find({
       where: {

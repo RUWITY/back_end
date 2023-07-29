@@ -20,6 +20,7 @@ export class UserTapService {
     private readonly userTapLinkRepository: Repository<UserTapLinkEntity>,
   ) {}
 
+  //finish---------
   //text 생성
   async saveTapText(id: number, dto: CreateUserTapTextDto) {
     const saveResult = await this.userTapTextRepository.save(
@@ -34,24 +35,31 @@ export class UserTapService {
     return saveResult;
   }
 
+  //finish---------
   //text 수정
   async updateTapText(dto: UpdateUserTapTextDto) {
     const updateResult = await this.userTapTextRepository.update(dto.tap_id, {
       context: dto.context,
     });
 
-    return updateResult;
+    if (!updateResult.affected) throw new Error('텍스트 내용 수정 실패');
+
+    return true;
   }
 
+  //finish---------
   //text 접은 상태 (펼침 true, 접힌 false)
   async updateTapFolderState(dto: UpdateUserTapFolderState) {
     const updateResuelt = await this.userTapTextRepository.update(dto.tap_id, {
       folded_state: dto.folded_state,
     });
 
-    return updateResuelt;
+    if (!updateResuelt.affected) throw new Error('폴더 상태 수정 실패');
+
+    return true;
   }
 
+  //finish---------
   //text 토글 변환 -> update_at도 수정
   async updateTapTextToggle(dto: UpdateUserTapToggle) {
     const updateResuelt = await this.userTapTextRepository.update(dto.tap_id, {
@@ -59,29 +67,24 @@ export class UserTapService {
       toggle_update_time: new Date(Date.now()),
     });
 
-    return updateResuelt;
+    if (!updateResuelt.affected) throw new Error('공개 설정 수정 실패');
+
+    return true;
   }
 
+  //finish---------
   //text 삭제
-  async deleteTapText(id: number) {
-    // const findResult = await this.userTapTextRepository.findOne({
-    //   where: {
-    //     id: id,
-    //   },
-    // });
-
-    // if (!findResult) {
-    //   // 엔티티가 존재하지 않으면 예외 처리 또는 다른 로직 수행
-    //   throw new NotFoundException('Entity not found');
-    // }
-
-    const updateResult = await this.userTapTextRepository.update(id, {
+  async deleteTapText(tap_id: number) {
+    const updateResult = await this.userTapTextRepository.update(tap_id, {
       delete_at: new Date(Date.now()),
     });
 
-    return updateResult;
+    if (!updateResult.affected) throw new Error('tap 삭제 실패');
+
+    return true;
   }
 
+  //finish---------
   //link 생성
   async saveTapLink(id: number, dto: CreateUserTapLinkDto) {
     const saveResult = await this.userTapLinkRepository.save(
@@ -97,6 +100,7 @@ export class UserTapService {
     return saveResult;
   }
 
+  //finish---------
   //link 수정
   async updateTapLink(dto: UpdateUserTapLinkDto) {
     const updateResult = await this.userTapLinkRepository.update(dto.tap_id, {
@@ -104,18 +108,24 @@ export class UserTapService {
       url: dto?.url,
     });
 
-    return updateResult;
+    if (!updateResult.affected) throw new Error('텍스트 내용 수정 실패');
+
+    return true;
   }
 
+  //finish---------
   //link 접은 상태 (펼침 true, 접힌 false)
   async updateTapLinkFolderState(dto: UpdateUserTapFolderState) {
     const updateResuelt = await this.userTapLinkRepository.update(dto.tap_id, {
       folded_state: dto.folded_state,
     });
 
-    return updateResuelt;
+    if (!updateResuelt.affected) throw new Error('폴더 상태 수정 실패');
+
+    return true;
   }
 
+  //finish---------
   //link 토글 변환 -> update_at도 수정
   async updateTapLinkTextToggle(dto: UpdateUserTapToggle) {
     const updateResuelt = await this.userTapLinkRepository.update(dto.tap_id, {
@@ -123,30 +133,38 @@ export class UserTapService {
       toggle_update_time: new Date(Date.now()),
     });
 
-    return updateResuelt;
+    if (!updateResuelt.affected) throw new Error('공개 설정 수정 실패');
+
+    return true;
   }
 
+  //finish---------
   //link 삭제
   async deleteTapLink(id: number) {
     const updateResult = await this.userTapLinkRepository.update(id, {
       delete_at: new Date(Date.now()),
     });
 
-    return updateResult;
+    if (!updateResult.affected) throw new Error('tap 삭제 실패');
+
+    return true;
   }
 
+  //finish---------
   //모든 탭 출력 get -> delete_at null인것만 출력 조건 넣기 -> created_at 순으로 정렬
   async findAllByUserIdOrderByCreatedAtDesc(user_id: number): Promise<any[]> {
     const textResults = await this.userTapTextRepository.find({
       where: {
         user_id: user_id,
         delete_at: null,
+        toggle_state: true,
       },
     });
     const linkResults = await this.userTapLinkRepository.find({
       where: {
         user_id: user_id,
         delete_at: null,
+        toggle_state: true,
       },
     });
 

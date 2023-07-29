@@ -3,7 +3,9 @@ import {
   Controller,
   Get,
   InternalServerErrorException,
+  NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -25,7 +27,8 @@ export class UserUserController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
-    summary: '유저 닉네임, 한 줄 표현, 프로필(개발 미완) 저장 ------해야해!!',
+    summary:
+      '유저 닉네임, 한 줄 표현, 프로필(개발 미완),오늘의 링크 저장 ---프로필 추가!!',
   })
   @Patch()
   async saveUserInfo(
@@ -36,14 +39,21 @@ export class UserUserController {
     return await this.userUserService.saveUserInfo(token.id, dto);
   }
 
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary: '유저 정보 출력(프로필(개발 미완),닉네임,한 줄 표현, 오늘의 링크',
   })
-  @Get()
-  async getUserInfo(@CtxUser() token: JWTToken) {
-    return await this.userUserService.getUserInfo(token.id);
+  @Get(':user_id')
+  async getUserInfo(@Param('user_id', ParseIntPipe) user_id: number) {
+    try {
+      return await this.userUserService.getUserInfo(user_id);
+    } catch (e) {
+      if (e instanceof NotFoundException)
+        throw new NotFoundException(e.message);
+
+      throw new InternalServerErrorException(e.message);
+    }
   }
 
   @Get('check/page/:url')
@@ -61,7 +71,7 @@ export class UserUserController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
-    summary: '성별, 나이, 페이지url',
+    summary: '성별, 나이, 페이지url 저장',
   })
   @Post('report')
   async saveGenderAge(
@@ -79,7 +89,7 @@ export class UserUserController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
-    summary: '프로필로 적용하기',
+    summary: '오늘의 링크 프로필로 적용하기',
   })
   @Patch('update/todayLink/:url_id')
   async updateTodayLink(
@@ -89,6 +99,9 @@ export class UserUserController {
     try {
       return await this.userUserService.updateTodayLink(token.id, url_id);
     } catch (e) {
+      if (e instanceof NotFoundException)
+        throw new NotFoundException(e.message);
+
       throw new InternalServerErrorException(e.message);
     }
   }

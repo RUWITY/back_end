@@ -45,4 +45,9 @@ export class KakaoLoginService {
 
     return { access_token: access_token, refresh_token: refresh_token };
   }
+
+  //finish---------
+  async refreshTokencheck(refresh_token: string) {
+    return await this.userService.refreshTokenCheck(refresh_token);
+  }
 }

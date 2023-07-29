@@ -97,15 +97,15 @@ export class UserTapController {
     }
   }
 
-  @Delete('text/:id')
+  @Delete('text/:tap_id')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary: 'tap text 삭제',
   })
-  async deleteTapText(@Param('id', new ParseIntPipe()) id: number) {
+  async deleteTapText(@Param('tap_id', new ParseIntPipe()) tap_id: number) {
     try {
-      return await this.userTapService.deleteTapText(id);
+      return await this.userTapService.deleteTapText(tap_id);
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
@@ -135,7 +135,7 @@ export class UserTapController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
-    summary: 'tap link 내용(제목 || url) 수정',
+    summary: 'tap link 내용(제목 or url) 수정 --- 프로필 추가 미완!!',
   })
   async updateTapLink(
     @Body(new ValidationPipe({ whitelist: true, transform: true }))
@@ -198,16 +198,16 @@ export class UserTapController {
 
   //-----------------------------------------------
 
-  @Get()
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
+  @Get(':user_id')
   @ApiOperation({
-    summary: '모든 태그 출력',
+    summary: '모든 탭 출력',
   })
-  async findAllUserTages(@CtxUser() token: JWTToken) {
+  async findAllUserTages(
+    @Param('user_id', new ParseIntPipe()) user_id: number,
+  ) {
     try {
       return await this.userTapService.findAllByUserIdOrderByCreatedAtDesc(
-        token.id,
+        user_id,
       );
     } catch (e) {
       throw new InternalServerErrorException(e.message);

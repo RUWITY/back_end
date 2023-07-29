@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user_user.entity';
 import { Repository, UpdateResult } from 'typeorm';
@@ -100,12 +105,45 @@ export class UserUserService {
     });
   }
 
+  //finish---------
+  async refreshTokenCheck(refreshTokenDto: string): Promise<{
+    accessToken: string;
+  }> {
+    const decodedRefreshToken = await this.jwtService.verifyAsync(
+      refreshTokenDto,
+      { secret: process.env.JWT_REFRESH_SECRET },
+    );
+
+    // Check if user exists
+    const userId = decodedRefreshToken.id;
+
+    const userFindResult = await this.userTokenRepository.findOne({
+      where: {
+        user_id: userId,
+      },
+    });
+
+    if (userFindResult.refresh_token !== refreshTokenDto)
+      throw new UnauthorizedException('refreshToken이 만료되었습니다.');
+
+    const accessToken = await this.generateAccessToken(userId);
+
+    await this.setKaKaoCurrentAccessToken(accessToken, userId);
+
+    return { accessToken };
+  }
+
+  //finish---------
   async getUserInfo(id: number) {
     const findResult = await this.userRepository.findOne({
       where: {
         id: id,
       },
     });
+
+    if (!findResult) {
+      throw new NotFoundException('존재하지 않는 유저 id 입니다.');
+    }
 
     const findTodayLink = await this.userTodayLinkEntityRepository.findOne({
       where: {
@@ -138,11 +176,14 @@ export class UserUserService {
 
   //프로필,닉네임, 한줄 설명, 오늘의 링크 없으면 save , 있으면 update
   async saveUserInfo(id: number, dto: CreateUserInfoDto) {
-    const updateResult = await this.userRepository.update(id, {
-      nickname: dto?.nickname,
-      profile: dto?.profile,
-      explanation: dto?.explanation,
-    });
+    //셋다 없다면 update 안일어남
+    if (dto.nickname || dto.profile || dto.explanation) {
+      await this.userRepository.update(id, {
+        nickname: dto?.nickname,
+        profile: dto?.profile,
+        explanation: dto?.explanation,
+      });
+    }
 
     const findResult = await this.userTodayLinkEntityRepository.findOne({
       where: {
@@ -150,8 +191,10 @@ export class UserUserService {
       },
     });
 
+    //today_link 없으면 안일어남
     if (dto.today_link) {
       if (!findResult) {
+        //처음 등록
         await this.userTodayLinkEntityRepository.save(
           new UserTodyLinkEntity({
             user_id: id,
@@ -159,6 +202,7 @@ export class UserUserService {
           }),
         );
       } else {
+        //업데이트
         await this.userTodayLinkEntityRepository.update(id, {
           today_link: dto?.today_link,
         });
@@ -174,7 +218,7 @@ export class UserUserService {
       );
     }
 
-    return updateResult;
+    return true;
   }
 
   //닉네임 없으면 save, 있으면 update
@@ -224,7 +268,12 @@ export class UserUserService {
     }
   }
 
+  //finish---------
   async checkPage(url: string) {
+    if (url.length > 12) {
+      throw new Error('url은 최대 12자입니다.');
+    }
+
     const findResult = await this.userPageEntityRepository.findOne({
       where: {
         page_url: url,
@@ -238,7 +287,11 @@ export class UserUserService {
     }
   }
 
+  //finish---------
   async saveGenderAge(id: number, dto: UserReportDto) {
+    if (dto.age.toString().length > 2)
+      throw new Error('나이는 2자리 이하만 가능합니다.');
+
     const saveReult = await this.userPageEntityRepository.save(
       new UserPageEntity({
         user_id: id,
@@ -246,18 +299,32 @@ export class UserUserService {
       }),
     );
 
-    const saveReult2 = await this.userRepository.update(id, {
+    if (!saveReult) {
+      throw new Error('page url 저장 실패');
+    }
+
+    const updateResult = await this.userRepository.update(id, {
       gender: dto?.gender || undefined,
       age: dto.age,
     });
+
+    if (!updateResult.affected) {
+      throw new Error('성별, 나이 저장 실패');
+    }
+
+    return true;
   }
 
+  //finish---------
   async updateTodayLink(user_id: number, url_id: number) {
     const findResult = await this.userUrlRepository.findOne({
       where: {
         id: url_id,
       },
     });
+
+    if (!findResult)
+      throw new NotFoundException('존재하지 않는 url_id 입니다.');
 
     const updateResult = await this.userTodayLinkEntityRepository.update(
       user_id,
