@@ -9,4 +9,7 @@ export class KakaoLoginUserDto {
 
   @IsString()
   profile_image: string;
+
+  @IsString()
+  email?: string;
 }

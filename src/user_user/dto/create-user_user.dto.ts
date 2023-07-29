@@ -5,6 +5,7 @@ export class CreateUserUserDto extends PickType(UserEntity, [
   'kakao_id',
   'nickname',
   'profile',
+  'user_email',
 ]) {
   constructor(data: Partial<CreateUserUserDto>) {
     super();

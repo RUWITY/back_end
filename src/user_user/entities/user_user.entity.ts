@@ -81,6 +81,15 @@ export class UserEntity {
   })
   age: number;
 
+  @Column({ type: 'varchar', length: 225, nullable: true })
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'email',
+    example: '111@naver.com',
+  })
+  user_email: string;
+
   @CreateDateColumn()
   @IsDate()
   created_at: Date;

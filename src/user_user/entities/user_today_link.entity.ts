@@ -12,6 +12,9 @@ export class UserTodyLinkEntity {
   @IsString()
   today_link: string;
 
+  @Column({ type: 'timestamptz', nullable: false })
+  created_at: Date;
+
   @OneToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;

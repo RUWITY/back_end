@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -15,7 +14,6 @@ import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UserPageEntity } from './entities/user_page.entity';
 import { UserReportDto } from './dto/save-user-report.dto';
 import { UserTodyLinkEntity } from './entities/user_today_link.entity';
-import { UserUrlService } from 'src/user_url/user_url.service';
 import { CreateUserUrlDto } from 'src/user_url/dto/create-user_url.dto';
 import { UserUrlEntity } from 'src/user_url/entities/user_url.entity';
 
@@ -163,6 +161,8 @@ export class UserUserService {
       explanation: findResult?.explanation || null,
       today_link: findTodayLink?.today_link || null,
       page_url: findPageUrl.page_url,
+      today_link_created_at: findTodayLink?.created_at || null,
+      user_email: findResult?.user_email || null,
     };
   }
 
@@ -206,12 +206,14 @@ export class UserUserService {
           new UserTodyLinkEntity({
             user_id: id,
             today_link: dto?.today_link,
+            created_at: new Date(Date.now()),
           }),
         );
       } else {
         //업데이트
         await this.userTodayLinkEntityRepository.update(id, {
           today_link: dto?.today_link,
+          created_at: new Date(Date.now()),
         });
       }
 
@@ -341,5 +343,33 @@ export class UserUserService {
     );
 
     return updateResult;
+  }
+
+  async findUserPageToUser(page_url: string) {
+    const findOneResult = await this.userPageEntityRepository.findOne({
+      where: {
+        page_url: page_url,
+      },
+      relations: {
+        user: true,
+      },
+    });
+
+    if (!findOneResult) throw new NotFoundException('존재하지 않는 url입니다.');
+
+    return findOneResult;
+  }
+
+  async logoutTokenNull(user_id: number) {
+    const removeResult = await this.userTokenRepository.update(user_id, {
+      access_token: '',
+      refresh_token: '',
+    });
+    //1이 나오면 성공한거
+    if (!removeResult.affected) {
+      throw new Error('로그아웃에 실패하였습니다.');
+    }
+
+    return true;
   }
 }

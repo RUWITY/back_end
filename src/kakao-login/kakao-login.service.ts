@@ -9,7 +9,7 @@ export class KakaoLoginService {
   constructor(private readonly userService: UserUserService) {}
 
   async kakaoLogin(kakao_user: KakaoLoginUserDto) {
-    const { kakao_id, nickname, profile_image } = kakao_user;
+    const { kakao_id, nickname, profile_image, email } = kakao_user;
 
     const findResult = await this.userService.findOAuthUser(kakao_id);
 
@@ -18,6 +18,7 @@ export class KakaoLoginService {
     if (!findResult) {
       const data = new CreateUserUserDto({
         kakao_id: kakao_id,
+        user_email: email,
         // nickname: nickname,
         // profile: profile_image,
       });

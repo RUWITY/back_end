@@ -106,4 +106,18 @@ export class UserUserController {
       throw new InternalServerErrorException(e.message);
     }
   }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAccessAuthGuard)
+  @ApiOperation({
+    summary: '로그아웃',
+  })
+  @Post('logout')
+  async logoutUser(@CtxUser() token: JWTToken) {
+    try {
+      return await this.userUserService.logoutTokenNull(token.id);
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
 }
