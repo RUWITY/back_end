@@ -123,11 +123,24 @@ export class UserUserService {
       explanation: dto?.explanation,
     });
 
-    const findResult = await this.userTodayLinkEntityRepository.findOne({
-      where: {
-        user_id: id,
-      },
-    });
+    // const findResult = await this.userTodayLinkEntityRepository.findOne({
+    //   where: {
+    //     user_id: id,
+    //   },
+    // });
+    // if (!findResult) {
+    //   await this.userTodayLinkEntityRepository.save(
+    //     new UserTodyLinkEntity({
+    //       user_id: id,
+    //       today_link: dto?.today_link,
+    //     }),
+    //   );
+    //   await this.
+    // } else {
+    //   await this.userTodayLinkEntityRepository.update(id, {
+    //     today_link: dto?.today_link,
+    //   });
+    // }
     //TNWJDTN수정수정
 
     return updateResult;

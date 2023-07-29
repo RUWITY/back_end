@@ -3,6 +3,7 @@ import { IsDate, IsNumber, IsString } from 'class-validator';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Generated,
   JoinColumn,
@@ -57,6 +58,9 @@ export class UserUrlEntity {
   @CreateDateColumn()
   @IsDate()
   created_at: Date;
+
+  @DeleteDateColumn({ name: 'delete_at', type: 'timestamp', default: null })
+  delete_at: Date | null;
 
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })

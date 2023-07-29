@@ -42,13 +42,18 @@ export class UserUrlService {
   }
 
   async deleteUserUrl(url_id: number) {
-    return await this.userUrlRepository.delete(url_id);
+    const updateResult = await this.userUrlRepository.update(url_id, {
+      delete_at: new Date(Date.now()),
+    });
+
+    return updateResult;
   }
 
   async findAllUserUrl(id: number) {
     const findResult = await this.userUrlRepository.find({
       where: {
         user_id: id,
+        delete_at: null,
       },
       order: {
         created_at: 'DESC',

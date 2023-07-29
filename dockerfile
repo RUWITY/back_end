@@ -4,7 +4,7 @@ FROM node:18.12.1-alpine AS deps
 
 WORKDIR /usr/src/r_u_wity_back/app
 
-COPY package*.json yarn.lock nest-cli.json tsconfig.json ./
+COPY ./package*.json yarn.lock nest-cli.json tsconfig.json ./
 # COPY src/envs/production.env /app/envs/production.env
 
 
