@@ -151,11 +151,18 @@ export class UserUserService {
       },
     });
 
+    const findPageUrl = await this.userPageEntityRepository.findOne({
+      where: {
+        user_id: id,
+      },
+    });
+
     return {
       profile: findResult?.profile || null,
       nickname: findResult?.nickname || null,
       explanation: findResult?.explanation || null,
       today_link: findTodayLink?.today_link || null,
+      page_url: findPageUrl.page_url,
     };
   }
 
