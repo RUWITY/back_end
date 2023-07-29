@@ -75,4 +75,21 @@ export class UserUserController {
       throw new InternalServerErrorException(e.message);
     }
   }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAccessAuthGuard)
+  @ApiOperation({
+    summary: '프로필로 적용하기',
+  })
+  @Patch('update/todayLink/:url_id')
+  async updateTodayLink(
+    @CtxUser() token: JWTToken,
+    @Param('url_id') url_id: number,
+  ) {
+    try {
+      return await this.userUserService.updateTodayLink(token.id, url_id);
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
 }

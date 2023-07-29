@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
 export class CreateUserInfoDto {
@@ -33,6 +33,22 @@ export class CreateUserInfoDto {
     example: 'https...',
   })
   today_link?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: '링크 이미지',
+    example: 'dfdf/img',
+  })
+  img?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: '링크 제목',
+    example: '고라니 날다',
+  })
+  title?: string;
 
   constructor(data: Partial<CreateUserInfoDto>) {
     Object.assign(this, data);

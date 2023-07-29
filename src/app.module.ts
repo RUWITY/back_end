@@ -9,7 +9,14 @@ import { UserUrlModule } from './user_url/user_url.module';
 import { UserTapModule } from './user_tap/user_tap.module';
 
 @Module({
-  imports: [KakaoLoginModule, UserUserModule, EntitiesModule, SettingModule, UserUrlModule, UserTapModule],
+  imports: [
+    KakaoLoginModule,
+    UserUserModule,
+    EntitiesModule,
+    SettingModule,
+    UserUrlModule,
+    UserTapModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

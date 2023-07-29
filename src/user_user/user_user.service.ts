@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user_user.entity';
 import { Repository, UpdateResult } from 'typeorm';
@@ -10,6 +10,9 @@ import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UserPageEntity } from './entities/user_page.entity';
 import { UserReportDto } from './dto/save-user-report.dto';
 import { UserTodyLinkEntity } from './entities/user_today_link.entity';
+import { UserUrlService } from 'src/user_url/user_url.service';
+import { CreateUserUrlDto } from 'src/user_url/dto/create-user_url.dto';
+import { UserUrlEntity } from 'src/user_url/entities/user_url.entity';
 
 @Injectable()
 export class UserUserService {
@@ -27,6 +30,9 @@ export class UserUserService {
 
     @InjectRepository(UserTodyLinkEntity)
     private readonly userTodayLinkEntityRepository: Repository<UserTodyLinkEntity>,
+
+    @InjectRepository(UserUrlEntity)
+    private readonly userUrlRepository: Repository<UserUrlEntity>,
   ) {}
 
   async findOAuthUser(kakao_id: number) {
@@ -115,6 +121,21 @@ export class UserUserService {
     };
   }
 
+  //모든 url 기록되는 곳
+  async saveUserUrl(id: number, dto: CreateUserUrlDto) {
+    const saveResult = await this.userUrlRepository.save(
+      new UserUrlEntity({
+        img: dto.img,
+        title: dto.title,
+        url: dto.url,
+        view: 0,
+        user_id: id,
+      }),
+    );
+
+    return saveResult;
+  }
+
   //프로필,닉네임, 한줄 설명, 오늘의 링크 없으면 save , 있으면 update
   async saveUserInfo(id: number, dto: CreateUserInfoDto) {
     const updateResult = await this.userRepository.update(id, {
@@ -123,25 +144,35 @@ export class UserUserService {
       explanation: dto?.explanation,
     });
 
-    // const findResult = await this.userTodayLinkEntityRepository.findOne({
-    //   where: {
-    //     user_id: id,
-    //   },
-    // });
-    // if (!findResult) {
-    //   await this.userTodayLinkEntityRepository.save(
-    //     new UserTodyLinkEntity({
-    //       user_id: id,
-    //       today_link: dto?.today_link,
-    //     }),
-    //   );
-    //   await this.
-    // } else {
-    //   await this.userTodayLinkEntityRepository.update(id, {
-    //     today_link: dto?.today_link,
-    //   });
-    // }
-    //TNWJDTN수정수정
+    const findResult = await this.userTodayLinkEntityRepository.findOne({
+      where: {
+        user_id: id,
+      },
+    });
+
+    if (dto.today_link) {
+      if (!findResult) {
+        await this.userTodayLinkEntityRepository.save(
+          new UserTodyLinkEntity({
+            user_id: id,
+            today_link: dto?.today_link,
+          }),
+        );
+      } else {
+        await this.userTodayLinkEntityRepository.update(id, {
+          today_link: dto?.today_link,
+        });
+      }
+
+      await this.saveUserUrl(
+        id,
+        new CreateUserUrlDto({
+          img: dto?.img,
+          title: dto.title,
+          url: dto.today_link,
+        }),
+      );
+    }
 
     return updateResult;
   }
@@ -219,5 +250,22 @@ export class UserUserService {
       gender: dto?.gender || undefined,
       age: dto.age,
     });
+  }
+
+  async updateTodayLink(user_id: number, url_id: number) {
+    const findResult = await this.userUrlRepository.findOne({
+      where: {
+        id: url_id,
+      },
+    });
+
+    const updateResult = await this.userTodayLinkEntityRepository.update(
+      user_id,
+      {
+        today_link: findResult.url,
+      },
+    );
+
+    return updateResult;
   }
 }
