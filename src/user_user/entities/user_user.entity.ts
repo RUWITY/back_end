@@ -4,9 +4,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Length,
-  Max,
-  Min,
 } from 'class-validator';
 import {
   Column,
@@ -64,14 +61,14 @@ export class UserEntity {
   })
   explanation: string;
 
-  @Column({ type: 'boolean', nullable: true })
-  @IsBoolean()
+  @Column({ type: 'varchar', length: '10', nullable: true })
+  @IsString()
   @IsOptional()
   @ApiPropertyOptional({
-    description: '성별(남자true,여자false,표시안함null)',
+    description: '성별(남자male,여자female,표시안함null)',
     example: 'true',
   })
-  gender?: boolean;
+  gender?: string;
 
   @Column({ type: 'int4', nullable: true })
   @IsNumber()
@@ -89,6 +86,14 @@ export class UserEntity {
     example: '111@naver.com',
   })
   user_email: string;
+
+  @IsBoolean()
+  @Column({ type: 'boolean', default: false })
+  @ApiProperty({
+    description: '신규,기존 회원인지 구별-> 신규 false, 기존 true',
+    example: false,
+  })
+  user_type: boolean;
 
   @CreateDateColumn()
   @IsDate()

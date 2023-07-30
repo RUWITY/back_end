@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -12,7 +13,15 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { UserTapService } from './user_tap.service';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiExtraModels,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { JwtAccessAuthGuard } from 'src/kakao-login/jwt-access.guard';
 import { CreateUserTapTextDto } from './dto/create-user-tap-text.dto';
 import { JWTToken } from 'src/kakao-login/dto/jwt-token.dto';
@@ -27,6 +36,75 @@ import { UpdateUserTapLinkDto } from './dto/update-user-tap-link.dto';
 @Controller('user-tap')
 export class UserTapController {
   constructor(private readonly userTapService: UserTapService) {}
+
+  // @Post(':type')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap 생성',
+  // })
+  // @ApiParam({
+  //   name: 'type',
+  //   description: '탭 타입 (text 또는 link)',
+  //   enum: ['text', 'link'],
+  // })
+  // // @ApiBody({ type: [CreateUserTapTextDto, CreateUserTapLinkDto] }) // CreateUserTapTextDto와 CreateUserTapLinkDto 모두 표시합니다.
+  // @ApiExtraModels(CreateUserTapTextDto, CreateUserTapLinkDto) // 여러 DTO를 하나의 컨트롤러 메서드에서 표시합니다.
+  // @ApiBody({
+  //   schema: {
+  //     oneOf: [
+  //       {
+  //         $ref: getSchemaPath(CreateUserTapTextDto),
+  //       },
+  //       {
+  //         $ref: getSchemaPath(CreateUserTapLinkDto),
+  //       },
+  //     ],
+  //   },
+  // })
+  // @ApiBody({
+  //   schema: {
+  //     type: 'object',
+  //     properties: {
+  //       data: {
+  //         type: 'array',
+  //         items: {
+  //           oneOf: [
+  //             { $ref: getSchemaPath(CreateUserTapTextDto) },
+  //             { $ref: getSchemaPath(CreateUserTapLinkDto) },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   },
+  // })
+  // // @ApiBody({ type: [CreateUserTapDtoArray] })
+  // async saveTap(
+  //   @CtxUser() token: JWTToken,
+  //   @Param('type') type: string,
+  //   @Body(new ValidationPipe({ whitelist: true, transform: true }))
+  //   dto: (CreateUserTapTextDto | CreateUserTapLinkDto)[], // 임시로 any 타입으로 받습니다.
+  // ) {
+  //   try {
+  //     if (type === 'text') {
+  //       // type 값이 'text'인 경우에는 CreateUserTapTextDto 배열를 사용하여 처리합니다.
+  //       const textDtoArray: CreateUserTapTextDto[] = dto.filter(
+  //         (item) => item instanceof CreateUserTapTextDto,
+  //       );
+  //       return await this.userTapService.saveTapText(token.id, textDtoArray);
+  //     } else if (type === 'link') {
+  //       // type 값이 'link'인 경우에는 CreateUserTapLinkDto 배열를 사용하여 처리합니다.
+  //       const linkDtoArray: CreateUserTapLinkDto[] = dto.filter(
+  //         (item) => item instanceof CreateUserTapLinkDto,
+  //       );
+  //       return await this.userTapService.saveTapLink(token.id, linkDtoArray);
+  //     } else {
+  //       throw new BadRequestException('Invalid tap type.');
+  //     }
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
   @Post('text')
   @ApiBearerAuth('access-token')

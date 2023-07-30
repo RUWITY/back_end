@@ -24,6 +24,7 @@ export class KakaoLoginService {
       });
 
       saveResult = await this.userService.saveUser(data);
+
       await this.userService.defaultToken(saveResult.id);
     }
     const access_token = await this.userService.generateAccessToken(

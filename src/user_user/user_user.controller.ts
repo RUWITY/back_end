@@ -27,6 +27,20 @@ export class UserUserController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
+    summary: '유저가 신규인지 아닌지 구별',
+  })
+  @Get('user_type')
+  async userTypeCheck(@CtxUser() token: JWTToken) {
+    try {
+      return await this.userUserService.userTypeCheck(token.id);
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAccessAuthGuard)
+  @ApiOperation({
     summary:
       '유저 닉네임, 한 줄 표현, 프로필(개발 미완),오늘의 링크 저장 ---프로필 추가!!',
   })
@@ -73,6 +87,7 @@ export class UserUserController {
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary: '성별, 나이, 페이지url 저장',
+    description: '성별(남자 male, 여자 female, 표시안함 null',
   })
   @Post('report')
   async saveGenderAge(
@@ -116,6 +131,20 @@ export class UserUserController {
   async logoutUser(@CtxUser() token: JWTToken) {
     try {
       return await this.userUserService.logoutTokenNull(token.id);
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAccessAuthGuard)
+  @ApiOperation({
+    summary: '계정 탈퇴',
+  })
+  @Post('logout')
+  async userWithdraw(@CtxUser() token: JWTToken) {
+    try {
+      return await this.userUserService.userWithdraw(token.id);
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }

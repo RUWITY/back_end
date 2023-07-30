@@ -315,6 +315,7 @@ export class UserUserService {
     const updateResult = await this.userRepository.update(id, {
       gender: dto?.gender || undefined,
       age: dto.age,
+      user_type: true,
     });
 
     if (!updateResult.affected) {
@@ -371,5 +372,29 @@ export class UserUserService {
     }
 
     return true;
+  }
+
+  async userWithdraw(user_id: number) {
+    const updateResult = await this.userRepository.update(user_id, {
+      kakao_id: -1,
+    });
+
+    if (!updateResult.affected) throw new Error('계정 탈퇴에 실패하였습니다.');
+
+    return true;
+  }
+
+  async userTypeCheck(user_id: number) {
+    const findResult = await this.userRepository.findOne({
+      where: {
+        id: user_id,
+      },
+    });
+
+    //true면 기존회원
+    if (findResult.user_type) return true;
+    else {
+      return false;
+    }
   }
 }
