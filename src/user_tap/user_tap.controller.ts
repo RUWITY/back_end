@@ -278,7 +278,7 @@ export class UserTapController {
 
   //-----------------------------------------------
 
-  @Get()
+  @Get('/all')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({

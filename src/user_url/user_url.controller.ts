@@ -51,7 +51,7 @@ export class UserUrlController {
     }
   }
 
-  @Get()
+  @Get('/all')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({

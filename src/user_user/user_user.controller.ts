@@ -27,6 +27,24 @@ export class UserUserController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
+    summary:
+      '유저 정보 출력(프로필(개발 미완),닉네임,한 줄 표현, 오늘의 링크, 페이지 링크',
+  })
+  @Get('/profile')
+  async getUserInfo(@CtxUser() token: JWTToken) {
+    try {
+      return await this.userUserService.getUserInfo(token.id);
+    } catch (e) {
+      if (e instanceof NotFoundException)
+        throw new NotFoundException(e.message);
+
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAccessAuthGuard)
+  @ApiOperation({
     summary: '유저가 신규인지 아닌지 구별',
   })
   @Get('user_type')
@@ -51,24 +69,6 @@ export class UserUserController {
     dto: CreateUserInfoDto,
   ) {
     return await this.userUserService.saveUserInfo(token.id, dto);
-  }
-
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary:
-      '유저 정보 출력(프로필(개발 미완),닉네임,한 줄 표현, 오늘의 링크, 페이지 링크',
-  })
-  @Get()
-  async getUserInfo(@CtxUser() token: JWTToken) {
-    try {
-      return await this.userUserService.getUserInfo(token.id);
-    } catch (e) {
-      if (e instanceof NotFoundException)
-        throw new NotFoundException(e.message);
-
-      throw new InternalServerErrorException(e.message);
-    }
   }
 
   @Get('check/page/:url')
