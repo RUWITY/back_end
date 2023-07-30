@@ -279,15 +279,15 @@ export class UserTapController {
   //-----------------------------------------------
 
   @Get(':user_id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary: '모든 탭 출력',
   })
-  async findAllUserTages(
-    @Param('user_id', new ParseIntPipe()) user_id: number,
-  ) {
+  async findAllUserTages(@CtxUser() token: JWTToken) {
     try {
       return await this.userTapService.findAllByUserIdOrderByCreatedAtDesc(
-        user_id,
+        token.id,
       );
     } catch (e) {
       throw new InternalServerErrorException(e.message);

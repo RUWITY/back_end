@@ -53,16 +53,16 @@ export class UserUserController {
     return await this.userUserService.saveUserInfo(token.id, dto);
   }
 
-  // @ApiBearerAuth('access-token')
-  // @UseGuards(JwtAccessAuthGuard)
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary:
       '유저 정보 출력(프로필(개발 미완),닉네임,한 줄 표현, 오늘의 링크, 페이지 링크',
   })
   @Get(':user_id')
-  async getUserInfo(@Param('user_id', ParseIntPipe) user_id: number) {
+  async getUserInfo(@CtxUser() token: JWTToken) {
     try {
-      return await this.userUserService.getUserInfo(user_id);
+      return await this.userUserService.getUserInfo(token.id);
     } catch (e) {
       if (e instanceof NotFoundException)
         throw new NotFoundException(e.message);

@@ -11,6 +11,8 @@ import {
 import { UserUrlService } from './user_url.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAccessAuthGuard } from 'src/kakao-login/jwt-access.guard';
+import { JWTToken } from 'src/kakao-login/dto/jwt-token.dto';
+import { CtxUser } from 'src/decorator/auth.decorator';
 
 @ApiTags('유저 URL API')
 @Controller('user-url')
@@ -50,12 +52,14 @@ export class UserUrlController {
   }
 
   @Get(':user_id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary: '유저가 생성한 모든 링크 출력',
   })
-  async findAllUserUrl(@Param('user_id', ParseIntPipe) user_id: number) {
+  async findAllUserUrl(@CtxUser() token: JWTToken) {
     try {
-      return await this.userUrlService.findAllUserUrl(user_id);
+      return await this.userUrlService.findAllUserUrl(token.id);
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
