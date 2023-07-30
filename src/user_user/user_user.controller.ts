@@ -59,7 +59,7 @@ export class UserUserController {
     summary:
       '유저 정보 출력(프로필(개발 미완),닉네임,한 줄 표현, 오늘의 링크, 페이지 링크',
   })
-  @Get(':user_id')
+  @Get()
   async getUserInfo(@CtxUser() token: JWTToken) {
     try {
       return await this.userUserService.getUserInfo(token.id);
