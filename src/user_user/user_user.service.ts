@@ -170,9 +170,9 @@ export class UserUserService {
 
     console.log('findTodayLink', findTodayLink);
 
-    if (!findTodayLink?.user_url && findTodayLink !== null) {
-      findTodayLink.today_link = null;
-    }
+    // if (!findTodayLink?.user_url && findTodayLink !== null) {
+    //   findTodayLink.today_link = null;
+    // }
 
     const findPageUrl = await this.userPageEntityRepository.findOne({
       where: {
@@ -184,10 +184,9 @@ export class UserUserService {
       profile: img_key || null,
       nickname: findResult?.nickname || null,
       explanation: findResult?.explanation || null,
-      today_link: findTodayLink?.today_link || null,
+      today_link: findTodayLink ? findTodayLink?.today_link : null,
       page_url: findPageUrl.page_url,
-      today_link_created_at:
-        findTodayLink?.today_link !== null ? findTodayLink?.created_at : null,
+      today_link_created_at: findTodayLink ? findTodayLink?.created_at : null,
       user_email: findResult?.user_email || null,
     };
   }
