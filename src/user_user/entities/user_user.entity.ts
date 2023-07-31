@@ -115,7 +115,7 @@ export class UserEntity {
     cascade: true,
     nullable: false,
   })
-  today_link: UserEntity;
+  today_link: UserTodyLinkEntity;
 
   constructor(data: Partial<UserEntity>) {
     Object.assign(this, data);

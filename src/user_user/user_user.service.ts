@@ -184,7 +184,8 @@ export class UserUserService {
       explanation: findResult?.explanation || null,
       today_link: findTodayLink?.today_link || null,
       page_url: findPageUrl.page_url,
-      today_link_created_at: findTodayLink?.created_at || null,
+      today_link_created_at:
+        findTodayLink?.today_link !== null ? findTodayLink?.created_at : null,
       user_email: findResult?.user_email || null,
     };
   }
@@ -249,8 +250,8 @@ export class UserUserService {
           } //text,link 수정이랑 toggle 수정하면됨
           else if (dto.actions[i].column == 'link') {
             const folderName = 'link'; // 원하는 폴더명
-            const key = `${folderName}/${id}/${dto.actions[i].tap_id}/${file.originalname}`;
-            await this.uploadFileDB(key, file);
+            const key = `${folderName}/${id}/${dto.actions[i].tap_id}/${dto.actions[i].link_img.originalname}`;
+            await this.uploadFileDB(key, dto.actions[i].link_img);
 
             const updateDto = {
               tap_id: dto.actions[i].tap_id,
@@ -458,7 +459,9 @@ export class UserUserService {
       },
       relations: {
         user: {
-          today_link: true,
+          today_link: {
+            user_url: true,
+          },
         },
       },
     });
@@ -475,8 +478,14 @@ export class UserUserService {
       user_nickname: findOneResult?.user?.nickname || undefined,
       profile_img: profile_img || undefined,
       explanation: findOneResult?.user?.explanation || undefined,
-      todya_link: findOneResult?.user?.today_link.today_link || undefined,
-      created_at: findOneResult?.user?.today_link.created_at || undefined,
+      today_link:
+        findOneResult?.user?.today_link?.user_url !== null
+          ? findOneResult?.user?.today_link.today_link
+          : null,
+      created_at:
+        findOneResult?.user?.today_link?.user_url !== null
+          ? findOneResult?.user?.today_link.created_at
+          : null,
     };
 
     // return findOneResult;

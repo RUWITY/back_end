@@ -27,7 +27,7 @@ export class AppController {
   }
 
   @ApiOperation({
-    summary: '특정 user의 page url에 들어간 경우 ---개발 중인 api',
+    summary: '특정 user의 page url에 들어간 경우 ',
   })
   @Get(':page_url')
   async getUserPageInfo(

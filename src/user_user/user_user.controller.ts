@@ -70,6 +70,17 @@ export class UserUserController {
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary: '유저 닉네임, 한 줄 표현, 프로필,오늘의 링크 저장',
+    description: `
+    삭제인 경우 \n
+    1. link -> {*column: 'link', method:'delete', *tap_id:1} \n
+    2. text -> {*column: 'text', method:'delete', *tap_id:1} \n
+    3. 프로필 이미지 -> {*column: 'profile', method:'delete'} \n
+    -------------------------------------------------------
+    업데이트인 경우 \n
+    1. link -> {*column: 'link', *tap_id:1, title:'링크 제목', url:'링크 url', toggle_state:'true/false', folded_state:'true/false', link_img:'이미지 첨부' } \n
+    2. text -> {*column: 'text', *tap_id:1, title:'텍스트 제목', context:'텍스트 내용', toggle_state:'true/false', folded_state:'true/false'} \n
+    3. 프로필 이미지 -> profile에 이미지 넣고 , { column: 'profile' } \n
+    `,
   })
   @ApiBody({ type: CreateUserInfoDto })
   @ApiConsumes('multipart/form-data') // 추가: 멀티파트 폼 데이터를 사용하도록 설정

@@ -27,7 +27,7 @@ export class UserTapService {
     const saveResult = await this.userTapTextRepository.save(
       new UserTapTextEntity({
         tap_type: 'text',
-        context: '',
+        context: '텍스트',
         user_id: id,
         folded_state: true,
       }),
