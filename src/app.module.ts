@@ -7,6 +7,7 @@ import { EntitiesModule } from './entity.module';
 import { SettingModule } from './config/config.module';
 import { UserUrlModule } from './user_url/user_url.module';
 import { UserTapModule } from './user_tap/user_tap.module';
+import { LoggerModule } from './winston/winston.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserTapModule } from './user_tap/user_tap.module';
     SettingModule,
     UserUrlModule,
     UserTapModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

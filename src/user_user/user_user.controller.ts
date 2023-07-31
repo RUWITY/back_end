@@ -81,7 +81,6 @@ export class UserUserController {
     dto: CreateUserInfoDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    // console.log('dto', dto.actions);
     if (file) {
       // const folderName = 'profile'; // 원하는 폴더명
       // const key = `${folderName}/${token.id}/${file.originalname}`;

@@ -172,8 +172,6 @@ export class UserUserService {
       findTodayLink.today_link = null;
     }
 
-    console.log('findTodayLink', findTodayLink);
-
     const findPageUrl = await this.userPageEntityRepository.findOne({
       where: {
         user_id: id,
@@ -248,7 +246,6 @@ export class UserUserService {
               profile: key,
             });
             //프로필 사진 변경
-            console.log(i, dto.actions[i]);
           } //text,link 수정이랑 toggle 수정하면됨
           else if (dto.actions[i].column == 'link') {
             const folderName = 'link'; // 원하는 폴더명
@@ -265,7 +262,6 @@ export class UserUserService {
             } as UpdateUserTapLinkDto;
             await this.updateTapLink(updateDto);
           } else if (dto.actions[i].column == 'text') {
-            console.log(i, dto.actions[i]);
             const updateDto = {
               tap_id: dto.actions[i]?.tap_id,
               title: dto.actions[i]?.title,
@@ -461,13 +457,29 @@ export class UserUserService {
         page_url: page_url,
       },
       relations: {
-        user: true,
+        user: {
+          today_link: true,
+        },
       },
     });
 
     if (!findOneResult) throw new NotFoundException('존재하지 않는 url입니다.');
 
-    return findOneResult;
+    let profile_img;
+    if (findOneResult.user?.profile)
+      profile_img = await this.getPreSignedUrl(findOneResult.user?.profile);
+
+    return {
+      user_id: findOneResult?.user_id || undefined,
+      page_url: findOneResult?.page_url || undefined,
+      user_nickname: findOneResult?.user?.nickname || undefined,
+      profile_img: profile_img || undefined,
+      explanation: findOneResult?.user?.explanation || undefined,
+      todya_link: findOneResult?.user?.today_link.today_link || undefined,
+      created_at: findOneResult?.user?.today_link.created_at || undefined,
+    };
+
+    // return findOneResult;
   }
 
   async logoutTokenNull(user_id: number) {
