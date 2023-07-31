@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserUrlEntity } from './entities/user_url.entity';
 import { Repository } from 'typeorm';
+import { s3 } from 'src/config/config/s3.config';
 
 @Injectable()
 export class UserUrlService {
@@ -54,6 +55,23 @@ export class UserUrlService {
       },
     });
 
+    for (let i = 0; i < findResult.length; i++) {
+      findResult[i].img = await this.getPreSignedUrl(findResult[i].img);
+    }
+
     return findResult;
+  }
+
+  //그냥 이미지 잘 나오나 확인 코드
+  async getPreSignedUrl(key: string): Promise<string> {
+    const imageParam = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+      Expires: 3600,
+    };
+
+    const preSignedUrl = await s3.getSignedUrlPromise('getObject', imageParam);
+
+    return preSignedUrl;
   }
 }

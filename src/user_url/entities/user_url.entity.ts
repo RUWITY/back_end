@@ -8,9 +8,11 @@ import {
   Generated,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
 } from 'typeorm';
 import { UserEntity } from '../../user_user/entities/user_user.entity';
+import { UserTodyLinkEntity } from 'src/user_user/entities/user_today_link.entity';
 
 @Entity('user_url')
 export class UserUrlEntity {
@@ -23,7 +25,7 @@ export class UserUrlEntity {
   })
   id: number;
 
-  @Column({ type: 'varchar', length: '225', nullable: true })
+  @Column({ type: 'text', nullable: true })
   @IsString()
   @ApiPropertyOptional({
     description: 'img 썸네일',
@@ -65,6 +67,12 @@ export class UserUrlEntity {
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
+
+  @OneToOne(() => UserTodyLinkEntity, (today) => today.user_id, {
+    cascade: true,
+    nullable: false,
+  })
+  today_url: UserTodyLinkEntity;
 
   constructor(data: Partial<UserUrlEntity>) {
     Object.assign(this, data);

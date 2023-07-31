@@ -9,6 +9,7 @@ import { UpdateUserTapFolderState } from './dto/create-user-tap-folder.dto';
 import { UpdateUserTapToggle } from './dto/create-user-tap-toggle.dto';
 import { CreateUserTapLinkDto } from './dto/create-user-tap-link.dto';
 import { UpdateUserTapLinkDto } from './dto/update-user-tap-link.dto';
+import { s3 } from 'src/config/config/s3.config';
 
 @Injectable()
 export class UserTapService {
@@ -22,32 +23,33 @@ export class UserTapService {
 
   //finish---------
   //text 생성
-  async saveTapText(id: number, dto: CreateUserTapTextDto[]) {
-    // const saveResult = await this.userTapTextRepository.save(
-    //   new UserTapTextEntity({
-    //     tap_type: dto.tap_type,
-    //     context: dto.context,
-    //     user_id: id,
-    //     folded_state: true,
-    //   }),
-    // );
-
-    // return saveResult;
-    const savedEntities: UserTapTextEntity[] = [];
-
-    for (const item of dto) {
-      const entity = new UserTapTextEntity({
-        tap_type: item.tap_type,
-        context: item.context,
+  async saveTapText(id: number) {
+    const saveResult = await this.userTapTextRepository.save(
+      new UserTapTextEntity({
+        tap_type: 'text',
+        context: '',
         user_id: id,
         folded_state: true,
-      });
+      }),
+    );
 
-      const saveResult = await this.userTapTextRepository.save(entity);
-      savedEntities.push(saveResult);
-    }
+    return saveResult;
+    // const savedEntities: UserTapTextEntity[] = [];
 
-    return savedEntities;
+    // for (const item of dto) {
+    //   const entity = new UserTapTextEntity({
+    //     tap_type: 'text',
+    //     title: item.title,
+    //     context: item.context,
+    //     user_id: id,
+    //     folded_state: true,
+    //   });
+
+    //   const saveResult = await this.userTapTextRepository.save(entity);
+    //   savedEntities.push(saveResult);
+    // }
+
+    // return savedEntities;
   }
 
   //finish---------
@@ -101,35 +103,35 @@ export class UserTapService {
 
   //finish---------
   //link 생성
-  async saveTapLink(id: number, dto: CreateUserTapLinkDto[]) {
-    const savedEntities: UserTapLinkEntity[] = [];
+  async saveTapLink(id: number) {
+    // const savedEntities: UserTapLinkEntity[] = [];
 
-    for (const item of dto) {
-      const entity = new UserTapLinkEntity({
-        tap_type: item.tap_type,
-        img: item?.img || '',
-        title: item?.title || '',
-        url: item.url,
-        user_id: id,
-      });
-
-      const saveResult = await this.userTapLinkRepository.save(entity);
-      savedEntities.push(saveResult);
-    }
-
-    return savedEntities;
-
-    // const saveResult = await this.userTapLinkRepository.save(
-    //   new UserTapLinkEntity({
-    //     tap_type: dto.tap_type,
-    //     img: dto?.img || '',
-    //     title: dto?.title || '',
-    //     url: dto.url,
+    // for (const item of dto) {
+    //   const entity = new UserTapLinkEntity({
+    //     tap_type: 'link',
+    //     img: item?.img || '',
+    //     title: item?.title || '',
+    //     url: item.url,
     //     user_id: id,
-    //   }),
-    // );
+    //   });
 
-    // return saveResult;
+    //   const saveResult = await this.userTapLinkRepository.save(entity);
+    //   savedEntities.push(saveResult);
+    // }
+
+    // return savedEntities;
+
+    const saveResult = await this.userTapLinkRepository.save(
+      new UserTapLinkEntity({
+        tap_type: 'link',
+        img: '',
+        title: '',
+        url: '',
+        user_id: id,
+      }),
+    );
+
+    return saveResult;
   }
 
   //finish---------
@@ -200,11 +202,30 @@ export class UserTapService {
       },
     });
 
+    for (let i = 0; i < linkResults.length; i++) {
+      if (linkResults[i].img) {
+        linkResults[i].img = await this.getPreSignedUrl(linkResults[i].img);
+      }
+    }
+
     const mergedResults = [...textResults, ...linkResults];
     mergedResults.sort(
       (a, b) => b.created_at.getTime() - a.created_at.getTime(),
     );
 
     return mergedResults;
+  }
+
+  //그냥 이미지 잘 나오나 확인 코드
+  async getPreSignedUrl(key: string): Promise<string> {
+    const imageParam = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+      Expires: 3600,
+    };
+
+    const preSignedUrl = await s3.getSignedUrlPromise('getObject', imageParam);
+
+    return preSignedUrl;
   }
 }

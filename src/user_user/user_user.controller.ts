@@ -8,16 +8,25 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CtxUser } from 'src/decorator/auth.decorator';
 import { JWTToken } from 'src/kakao-login/dto/jwt-token.dto';
 import { JwtAccessAuthGuard } from 'src/kakao-login/jwt-access.guard';
 import { UserUserService } from './user_user.service';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UserReportDto } from './dto/save-user-report.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('유저 API')
 @Controller('user-user')
@@ -56,18 +65,30 @@ export class UserUserController {
     }
   }
 
+  //pipe 오류
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
-    summary:
-      '유저 닉네임, 한 줄 표현, 프로필(개발 미완),오늘의 링크 저장 ---프로필 추가!!',
+    summary: '유저 닉네임, 한 줄 표현, 프로필,오늘의 링크 저장',
   })
-  @Patch()
+  @ApiBody({ type: CreateUserInfoDto })
+  @ApiConsumes('multipart/form-data') // 추가: 멀티파트 폼 데이터를 사용하도록 설정
+  @UseInterceptors(FileInterceptor('profile'))
+  @Patch('profile')
   async saveUserInfo(
     @CtxUser() token: JWTToken,
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
+    @Body()
     dto: CreateUserInfoDto,
+    @UploadedFile() file: Express.Multer.File,
   ) {
+    // console.log('dto', dto.actions);
+    if (file) {
+      // const folderName = 'profile'; // 원하는 폴더명
+      // const key = `${folderName}/${token.id}/${file.originalname}`;
+
+      return await this.userUserService.saveUserInfo(token.id, dto, file);
+    }
+
     return await this.userUserService.saveUserInfo(token.id, dto);
   }
 
@@ -141,7 +162,7 @@ export class UserUserController {
   @ApiOperation({
     summary: '계정 탈퇴',
   })
-  @Post('logout')
+  @Post('resign')
   async userWithdraw(@CtxUser() token: JWTToken) {
     try {
       return await this.userUserService.userWithdraw(token.id);
@@ -149,4 +170,38 @@ export class UserUserController {
       throw new InternalServerErrorException(e.message);
     }
   }
+
+  // @Post('imgtest')
+  // @ApiConsumes('multipart/form-data')
+  // @UseInterceptors(FileInterceptor('file')) // 파일을 업로드한 후, multer로부터 업로드된 파일 객체를 받음
+  // @ApiBody({
+  //   schema: {
+  //     type: 'object',
+  //     properties: {
+  //       file: {
+  //         // 👈 this property
+  //         type: 'string',
+  //         format: 'binary',
+  //       },
+  //     },
+  //   },
+  // })
+  // async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  //   // 파일을 S3에 업로드하기 전에 폴더 경로를 추가하여 Key를 생성
+  //   const folderName = 'profile'; // 원하는 폴더명
+  //   const key = `${folderName}/${file.originalname}`;
+
+  //   // S3에 파일 업로드
+  //   const result = await this.userUserService.uploadFile(key, file.buffer);
+
+  //   // 업로드 결과 등을 처리하는 로직 추가
+
+  //   return result;
+  // }
+
+  // @Get('tetst')
+  // async testster() {
+  //   const key = 'profile/5/images.jpeg';
+  //   return await this.userUserService.getPreSignedUrl(key);
+  // }
 }

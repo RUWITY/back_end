@@ -2,12 +2,12 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
 export class CreateUserTapLinkDto {
-  @IsString()
-  @ApiProperty({
-    description: '탭 타입[링크]',
-    example: '링크',
-  })
-  tap_type: string;
+  // @IsString()
+  // @ApiProperty({
+  //   description: '탭 타입[링크]',
+  //   example: '링크',
+  // })
+  // tap_type: string;
 
   @IsString()
   @IsOptional()

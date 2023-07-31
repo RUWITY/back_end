@@ -106,175 +106,177 @@ export class UserTapController {
   //   }
   // }
 
+  //생성은 완료
   @Post('text')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary: 'tap text 생성',
   })
-  @ApiBody({ type: [CreateUserTapTextDto] })
+  // @ApiBody({ type: [CreateUserTapTextDto] })
   async saveTapText(
     @CtxUser() token: JWTToken,
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: CreateUserTapTextDto[],
+    // @Body(new ValidationPipe({ whitelist: true, transform: true }))
+    // dto: CreateUserTapTextDto[],
   ) {
     try {
-      return await this.userTapService.saveTapText(token.id, dto);
+      return await this.userTapService.saveTapText(token.id);
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
   }
 
-  @Patch('text')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: 'tap text 내용 수정',
-  })
-  async updateTapText(
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: UpdateUserTapTextDto,
-  ) {
-    try {
-      return await this.userTapService.updateTapText(dto);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @Patch('text')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap text 내용 수정',
+  // })
+  // async updateTapText(
+  //   @Body(new ValidationPipe({ whitelist: true, transform: true }))
+  //   dto: UpdateUserTapTextDto,
+  // ) {
+  //   try {
+  //     return await this.userTapService.updateTapText(dto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
-  @Patch('text/folder')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: 'tap text folder 상태 변경 [펼침=true, 접음=false]',
-  })
-  async updateTapFolderState(
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: UpdateUserTapFolderState,
-  ) {
-    try {
-      return await this.userTapService.updateTapFolderState(dto);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @Patch('text/folder')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap text folder 상태 변경 [펼침=true, 접음=false]',
+  // })
+  // async updateTapFolderState(
+  //   @Body(new ValidationPipe({ whitelist: true, transform: true }))
+  //   dto: UpdateUserTapFolderState,
+  // ) {
+  //   try {
+  //     return await this.userTapService.updateTapFolderState(dto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
-  @Patch('text/toggle')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: 'tap text toggle 상태 변경 [공개=true, 비공개=false]',
-  })
-  async updateTapTextToggle(
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: UpdateUserTapToggle,
-  ) {
-    try {
-      return await this.userTapService.updateTapTextToggle(dto);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @Patch('text/toggle')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap text toggle 상태 변경 [공개=true, 비공개=false]',
+  // })
+  // async updateTapTextToggle(
+  //   @Body(new ValidationPipe({ whitelist: true, transform: true }))
+  //   dto: UpdateUserTapToggle,
+  // ) {
+  //   try {
+  //     return await this.userTapService.updateTapTextToggle(dto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
-  @Delete('text/:tap_id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: 'tap text 삭제',
-  })
-  async deleteTapText(@Param('tap_id', new ParseIntPipe()) tap_id: number) {
-    try {
-      return await this.userTapService.deleteTapText(tap_id);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @Delete('text/:tap_id')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap text 삭제',
+  // })
+  // async deleteTapText(@Param('tap_id', new ParseIntPipe()) tap_id: number) {
+  //   try {
+  //     return await this.userTapService.deleteTapText(tap_id);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
-  //-------------------------------------------------
+  // //-------------------------------------------------
 
+  //탭 생성들은 빈객체 넣어서 만들면 될듯
   @Post('link')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAccessAuthGuard)
   @ApiOperation({
     summary: 'tap link 생성',
   })
-  @ApiBody({ type: [CreateUserTapLinkDto] })
+  // @ApiBody({ type: CreateUserTapLinkDto })
   async saveTapLink(
     @CtxUser() token: JWTToken,
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: CreateUserTapLinkDto[],
+    // @Body(new ValidationPipe({ whitelist: true, transform: true }))
+    // dto: CreateUserTapLinkDto,
   ) {
     try {
-      return await this.userTapService.saveTapLink(token.id, dto);
+      return await this.userTapService.saveTapLink(token.id);
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
   }
 
-  @Patch('link')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: 'tap link 내용(제목 or url) 수정 --- 프로필 추가 미완!!',
-  })
-  async updateTapLink(
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: UpdateUserTapLinkDto,
-  ) {
-    try {
-      return await this.userTapService.updateTapLink(dto);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @Patch('link')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap link 내용(제목 or url) 수정 --- 프로필 추가 미완!!',
+  // })
+  // async updateTapLink(
+  //   @Body(new ValidationPipe({ whitelist: true, transform: true }))
+  //   dto: UpdateUserTapLinkDto,
+  // ) {
+  //   try {
+  //     return await this.userTapService.updateTapLink(dto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
-  @Patch('link/folder')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: 'tap link folder 상태 변경 [펼침=true, 접음=false]',
-  })
-  async updateTapLinkFolderState(
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: UpdateUserTapFolderState,
-  ) {
-    try {
-      return await this.userTapService.updateTapLinkFolderState(dto);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @Patch('link/folder')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap link folder 상태 변경 [펼침=true, 접음=false]',
+  // })
+  // async updateTapLinkFolderState(
+  //   @Body(new ValidationPipe({ whitelist: true, transform: true }))
+  //   dto: UpdateUserTapFolderState,
+  // ) {
+  //   try {
+  //     return await this.userTapService.updateTapLinkFolderState(dto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
-  @Patch('link/toggle')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: 'tap link toggle 상태 변경 [공개=true, 비공개=false]',
-  })
-  async updateTapLinkTextToggle(
-    @Body(new ValidationPipe({ whitelist: true, transform: true }))
-    dto: UpdateUserTapToggle,
-  ) {
-    try {
-      return await this.userTapService.updateTapLinkTextToggle(dto);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @Patch('link/toggle')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap link toggle 상태 변경 [공개=true, 비공개=false]',
+  // })
+  // async updateTapLinkTextToggle(
+  //   @Body(new ValidationPipe({ whitelist: true, transform: true }))
+  //   dto: UpdateUserTapToggle,
+  // ) {
+  //   try {
+  //     return await this.userTapService.updateTapLinkTextToggle(dto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
-  @Delete('link/:id')
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAccessAuthGuard)
-  @ApiOperation({
-    summary: 'tap link 삭제',
-  })
-  async deleteTapLink(@Param('id', new ParseIntPipe()) id: number) {
-    try {
-      return await this.userTapService.deleteTapLink(id);
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
+  // @Delete('link/:id')
+  // @ApiBearerAuth('access-token')
+  // @UseGuards(JwtAccessAuthGuard)
+  // @ApiOperation({
+  //   summary: 'tap link 삭제',
+  // })
+  // async deleteTapLink(@Param('id', new ParseIntPipe()) id: number) {
+  //   try {
+  //     return await this.userTapService.deleteTapLink(id);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(e.message);
+  //   }
+  // }
 
   //-----------------------------------------------
 

@@ -31,7 +31,7 @@ export class UserTapLinkEntity {
   })
   tap_type: string;
 
-  @Column({ type: 'varchar', length: '225', nullable: true })
+  @Column({ type: 'text', nullable: true })
   @IsString()
   @ApiPropertyOptional({
     description: 'img 썸네일',

@@ -45,7 +45,7 @@ export class UserEntity {
   })
   nickname: string;
 
-  @Column({ type: 'varchar', length: '225', nullable: true })
+  @Column({ type: 'text', nullable: true })
   @IsString()
   @ApiProperty({
     description: 'profile',

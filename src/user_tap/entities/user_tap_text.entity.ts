@@ -37,6 +37,14 @@ export class UserTapTextEntity {
     description: '제목',
     example: '고라니가 수영함',
   })
+  title: string;
+
+  @Column({ type: 'varchar', length: '225', nullable: true })
+  @IsString()
+  @ApiPropertyOptional({
+    description: '제목',
+    example: '고라니가 수영함',
+  })
   context: string;
 
   @Column({ type: 'boolean', default: true })

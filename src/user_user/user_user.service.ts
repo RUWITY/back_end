@@ -16,6 +16,11 @@ import { UserReportDto } from './dto/save-user-report.dto';
 import { UserTodyLinkEntity } from './entities/user_today_link.entity';
 import { CreateUserUrlDto } from 'src/user_url/dto/create-user_url.dto';
 import { UserUrlEntity } from 'src/user_url/entities/user_url.entity';
+import { s3 } from 'src/config/config/s3.config';
+import { UserTapTextEntity } from 'src/user_tap/entities/user_tap_text.entity';
+import { UserTapLinkEntity } from 'src/user_tap/entities/user_tap_link.entity';
+import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto';
+import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
 
 @Injectable()
 export class UserUserService {
@@ -36,6 +41,12 @@ export class UserUserService {
 
     @InjectRepository(UserUrlEntity)
     private readonly userUrlRepository: Repository<UserUrlEntity>,
+
+    @InjectRepository(UserTapTextEntity)
+    private readonly userTapTextRepository: Repository<UserTapTextEntity>,
+
+    @InjectRepository(UserTapLinkEntity)
+    private readonly userTapLinkRepository: Repository<UserTapLinkEntity>,
   ) {}
 
   async findOAuthUser(kakao_id: number) {
@@ -139,6 +150,11 @@ export class UserUserService {
       },
     });
 
+    let img_key: string;
+    if (findResult?.profile) {
+      img_key = await this.getPreSignedUrl(findResult?.profile);
+    }
+
     if (!findResult) {
       throw new NotFoundException('존재하지 않는 유저 id 입니다.');
     }
@@ -147,7 +163,16 @@ export class UserUserService {
       where: {
         user_id: id,
       },
+      relations: {
+        user_url: true,
+      },
     });
+
+    if (!findTodayLink?.user_url) {
+      findTodayLink.today_link = null;
+    }
+
+    console.log('findTodayLink', findTodayLink);
 
     const findPageUrl = await this.userPageEntityRepository.findOne({
       where: {
@@ -156,7 +181,7 @@ export class UserUserService {
     });
 
     return {
-      profile: findResult?.profile || null,
+      profile: img_key || null,
       nickname: findResult?.nickname || null,
       explanation: findResult?.explanation || null,
       today_link: findTodayLink?.today_link || null,
@@ -182,14 +207,77 @@ export class UserUserService {
   }
 
   //프로필,닉네임, 한줄 설명, 오늘의 링크 없으면 save , 있으면 update
-  async saveUserInfo(id: number, dto: CreateUserInfoDto) {
+  async saveUserInfo(
+    id: number,
+    dto: CreateUserInfoDto,
+    file?: Express.Multer.File,
+  ) {
     //셋다 없다면 update 안일어남
-    if (dto.nickname || dto.profile || dto.explanation) {
+    if (dto.nickname || dto.explanation) {
       await this.userRepository.update(id, {
         nickname: dto?.nickname,
-        profile: dto?.profile,
         explanation: dto?.explanation,
       });
+    }
+
+    if (dto.actions) {
+      if (typeof dto.actions === 'string') {
+        dto.actions = JSON.parse(dto.actions);
+      }
+
+      for (let i = 0; i < dto.actions.length; i++) {
+        //탭 (text,link)삭제
+        if (dto.actions[i].method == 'delete') {
+          if (dto.actions[i].column == 'link') {
+            //링크 탭 삭제
+            await this.deleteTapLink(dto.actions[i].tap_id);
+          } else if (dto.actions[i].column == 'text') {
+            //테스트 탭 삭제
+            await this.deleteTapText(dto.actions[i].tap_id);
+          } else if (dto.actions[i].column == 'profile') {
+            await this.setNullProfileImg(id);
+          }
+        } else {
+          //update 부분 <<프로필은 수정 완료,삭제까지
+          if (dto.actions[i].column == 'profile') {
+            const folderName = 'profile'; // 원하는 폴더명
+            const key = `${folderName}/${id}/${file.originalname}`;
+            await this.uploadFileDB(key, file);
+
+            await this.userRepository.update(id, {
+              profile: key,
+            });
+            //프로필 사진 변경
+            console.log(i, dto.actions[i]);
+          } //text,link 수정이랑 toggle 수정하면됨
+          else if (dto.actions[i].column == 'link') {
+            const folderName = 'link'; // 원하는 폴더명
+            const key = `${folderName}/${id}/${dto.actions[i].tap_id}/${file.originalname}`;
+            await this.uploadFileDB(key, file);
+
+            const updateDto = {
+              tap_id: dto.actions[i].tap_id,
+              title: dto.actions[i].title,
+              url: dto.actions[i].context,
+              toggle_state: dto.actions[i].toggle_state,
+              folded_state: dto.actions[i].folded_state,
+              link_img: key,
+            } as UpdateUserTapLinkDto;
+            await this.updateTapLink(updateDto);
+          } else if (dto.actions[i].column == 'text') {
+            console.log(i, dto.actions[i]);
+            const updateDto = {
+              tap_id: dto.actions[i]?.tap_id,
+              title: dto.actions[i]?.title,
+              context: dto.actions[i]?.context,
+              toggle_state: dto.actions[i]?.toggle_state,
+              folded_state: dto.actions[i]?.folded_state,
+            } as UpdateUserTapTextDto;
+
+            await this.updateTapText(updateDto);
+          }
+        }
+      }
     }
 
     const findResult = await this.userTodayLinkEntityRepository.findOne({
@@ -200,24 +288,7 @@ export class UserUserService {
 
     //today_link 없으면 안일어남
     if (dto.today_link) {
-      if (!findResult) {
-        //처음 등록
-        await this.userTodayLinkEntityRepository.save(
-          new UserTodyLinkEntity({
-            user_id: id,
-            today_link: dto?.today_link,
-            created_at: new Date(Date.now()),
-          }),
-        );
-      } else {
-        //업데이트
-        await this.userTodayLinkEntityRepository.update(id, {
-          today_link: dto?.today_link,
-          created_at: new Date(Date.now()),
-        });
-      }
-
-      await this.saveUserUrl(
+      const saveResult = await this.saveUserUrl(
         id,
         new CreateUserUrlDto({
           img: dto?.img,
@@ -225,7 +296,45 @@ export class UserUserService {
           url: dto.today_link,
         }),
       );
+      if (!findResult) {
+        //처음 등록
+        await this.userTodayLinkEntityRepository.save(
+          new UserTodyLinkEntity({
+            user_id: id,
+            today_link: dto?.today_link,
+            created_at: new Date(Date.now()),
+            url_id: saveResult.id,
+          }),
+        );
+      } else {
+        //업데이트
+        await this.userTodayLinkEntityRepository.update(id, {
+          today_link: dto?.today_link,
+          created_at: new Date(Date.now()),
+          url_id: saveResult.id,
+        });
+
+        // await this.saveUserUrl(
+        //   id,
+        //   new CreateUserUrlDto({
+        //     img: dto?.img,
+        //     title: dto.title,
+        //     url: dto.today_link,
+        //   }),
+        // );
+      }
     }
+
+    return true;
+  }
+
+  //프사 빈 객체로 변경
+  async setNullProfileImg(user_id: number) {
+    const updateResult = await this.userRepository.update(user_id, {
+      profile: '',
+    });
+
+    if (!updateResult.affected) throw new Error('이미지 삭제 실패');
 
     return true;
   }
@@ -396,5 +505,124 @@ export class UserUserService {
     else {
       return false;
     }
+  }
+
+  //---------------------------
+  async uploadFileDB(key: string, file: Express.Multer.File): Promise<string> {
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME, // 버킷 이름
+      Key: key, // 파일의 S3 Key (폴더 경로 포함)
+      Body: file.buffer, // 파일의 바이너리 데이터
+      // ACL: process.env.AWS_BUCKET_ACL,
+    };
+
+    try {
+      const response = await s3.upload(params).promise(); // S3에 파일 업로드 요청
+
+      return response.Location; // 업로드된 파일의 URL 반환
+    } catch (error) {
+      // 업로드 실패시 예외 처리
+      throw new Error('Failed to upload file to S3.');
+    }
+  }
+
+  //----------------------------------
+  //그냥 이미지 잘 들어가나 확인 코드
+  async uploadFile(key: string, body: Buffer): Promise<string> {
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME, // 버킷 이름
+      Key: key, // 파일의 S3 Key (폴더 경로 포함)
+      Body: body, // 파일의 바이너리 데이터
+      // ACL: process.env.AWS_BUCKET_ACL,
+    };
+
+    try {
+      const response = await s3.upload(params).promise(); // S3에 파일 업로드 요청
+
+      return response.Location; // 업로드된 파일의 URL 반환
+    } catch (error) {
+      // 업로드 실패시 예외 처리
+      throw new Error('Failed to upload file to S3.');
+    }
+  }
+
+  //그냥 이미지 잘 나오나 확인 코드
+  async getPreSignedUrl(key: string): Promise<string> {
+    const imageParam = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+      Expires: 3600,
+    };
+
+    const preSignedUrl = await s3.getSignedUrlPromise('getObject', imageParam);
+
+    return preSignedUrl;
+  }
+
+  //링크 삭제
+  async deleteTapLink(id: number) {
+    const updateResult = await this.userTapLinkRepository.update(id, {
+      delete_at: new Date(Date.now()),
+    });
+
+    if (!updateResult.affected) throw new Error('tap 삭제 실패');
+
+    return true;
+  }
+
+  //테스트 삭제
+  async deleteTapText(tap_id: number) {
+    const updateResult = await this.userTapTextRepository.update(tap_id, {
+      delete_at: new Date(Date.now()),
+    });
+
+    if (!updateResult.affected) throw new Error('tap 삭제 실패');
+
+    return true;
+  }
+
+  //link 수정
+  async updateTapLink(dto: UpdateUserTapLinkDto) {
+    let time: any;
+    if (dto.toggle_state !== undefined && dto.toggle_state !== null) {
+      time = new Date(Date.now());
+    } else {
+      time = undefined;
+    }
+
+    const updateResult = await this.userTapLinkRepository.update(dto.tap_id, {
+      title: dto?.title,
+      url: dto?.url,
+      img: dto?.link_img,
+      toggle_state: dto?.toggle_state,
+      toggle_update_time: time,
+      folded_state: dto?.folded_state,
+    });
+
+    if (!updateResult.affected) throw new Error('텍스트 내용 수정 실패');
+
+    return true;
+  }
+
+  //text 수정
+  async updateTapText(dto: UpdateUserTapTextDto) {
+    let time: any;
+    if (dto.toggle_state !== undefined && dto.toggle_state !== null) {
+      time = new Date(Date.now());
+    } else {
+      time = undefined;
+    }
+
+    const updateResult = await this.userTapTextRepository.update(dto.tap_id, {
+      title: dto?.title,
+      context: dto?.context,
+      toggle_state: dto?.toggle_state,
+      toggle_update_time: time,
+      folded_state: dto?.folded_state,
+    });
+
+    if (!updateResult.affected) throw new Error('텍스트 내용 수정 실패');
+
+    return true;
   }
 }
