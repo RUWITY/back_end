@@ -168,7 +168,9 @@ export class UserUserService {
       },
     });
 
-    if (!findTodayLink?.user_url) {
+    console.log('findTodayLink', findTodayLink);
+
+    if (!findTodayLink?.user_url && findTodayLink !== null) {
       findTodayLink.today_link = null;
     }
 
