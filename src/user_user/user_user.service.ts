@@ -185,7 +185,7 @@ export class UserUserService {
       nickname: findResult?.nickname || null,
       explanation: findResult?.explanation || null,
       today_link: findTodayLink ? findTodayLink?.today_link : null,
-      page_url: findPageUrl.page_url,
+      page_url: findPageUrl.page_url || null,
       today_link_created_at: findTodayLink ? findTodayLink?.created_at : null,
       user_email: findResult?.user_email || null,
     };
@@ -250,9 +250,12 @@ export class UserUserService {
             //프로필 사진 변경
           } //text,link 수정이랑 toggle 수정하면됨
           else if (dto.actions[i].column == 'link') {
-            const folderName = 'link'; // 원하는 폴더명
-            const key = `${folderName}/${id}/${dto.actions[i].tap_id}/${dto.actions[i].link_img.originalname}`;
-            await this.uploadFileDB(key, dto.actions[i].link_img);
+            let key;
+            if(dto.actions[i].link_img){
+                 const folderName = 'link'; // 원하는 폴더명
+              key = `${folderName}/${id}/${dto.actions[i].tap_id}/${dto.actions[i].link_img.originalname}`;
+              await this.uploadFileDB(key, dto.actions[i].link_img);
+            }
 
             const updateDto = {
               tap_id: dto.actions[i].tap_id,
