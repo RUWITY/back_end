@@ -232,9 +232,13 @@ export class UserUserService {
         if (dto.actions[i].method == 'delete') {
           if (dto.actions[i].column == 'link') {
             //===============탭 링크 이미지 삭제 넣어야할듯
-            // if(dto.actions[i].)
-            //링크 탭 삭제
-            await this.deleteTapLink(dto.actions[i].tap_id);
+            if (dto.actions[i].link_img_delete) {
+              //링크 이미지 삭제
+              await this.setNullLinkImg(dto.actions[i].tap_id);
+            } else {
+              //링크 탭 삭제
+              await this.deleteTapLink(dto.actions[i].tap_id);
+            }
           } else if (dto.actions[i].column == 'text') {
             //테스트 탭 삭제
             await this.deleteTapText(dto.actions[i].tap_id);
@@ -365,6 +369,17 @@ export class UserUserService {
   async setNullProfileImg(user_id: number) {
     const updateResult = await this.userRepository.update(user_id, {
       profile: '',
+    });
+
+    if (!updateResult.affected) throw new Error('이미지 삭제 실패');
+
+    return true;
+  }
+
+  //링크 빈 객체로 변경
+  async setNullLinkImg(tap_id: number) {
+    const updateResult = await this.userTapLinkRepository.update(tap_id, {
+      img: '',
     });
 
     if (!updateResult.affected) throw new Error('이미지 삭제 실패');
