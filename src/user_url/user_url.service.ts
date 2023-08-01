@@ -54,9 +54,10 @@ export class UserUrlService {
         created_at: 'DESC',
       },
     });
-
+    console.log('findRes', findResult);
     for (let i = 0; i < findResult.length; i++) {
       findResult[i].img = await this.getPreSignedUrl(findResult[i].img);
+      console.log('img', findResult[i].img);
     }
 
     return findResult;
