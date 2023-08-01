@@ -232,6 +232,7 @@ export class UserUserService {
         if (dto.actions[i].method == 'delete') {
           if (dto.actions[i].column == 'link') {
             //===============탭 링크 이미지 삭제 넣어야할듯
+            // if(dto.actions[i].)
             //링크 탭 삭제
             await this.deleteTapLink(dto.actions[i].tap_id);
           } else if (dto.actions[i].column == 'text') {
