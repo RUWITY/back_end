@@ -222,6 +222,8 @@ export class UserUserService {
       });
     }
 
+    console.log('dto.actions', dto.actions);
+
     if (dto.actions) {
       if (typeof dto.actions === 'string') {
         dto.actions = JSON.parse(dto.actions);
