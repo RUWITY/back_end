@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { ActionTapDto } from './tap-delete.dto';
+import { Type } from 'class-transformer';
 
 export class CreateUserInfoDto {
   @IsString()
@@ -70,12 +71,12 @@ export class CreateUserInfoDto {
     description:
       '프로필, TAP[text, link] 수정 ->> 탭 삭제하는 것 제외하고는 method생략 ',
     example: [
-      { column: 'profile' }, // 프로필 이미지 삭제 <<update로 들어감
+      [{ column: 'profile' }], // 프로필 이미지 삭제 <<update로 들어감
     ],
   })
   @IsArray()
   @ValidateNested({ each: true })
-  // @Type(() => ActionTapDto)
+  @Type(() => ActionTapDto)
   actions?: ActionTapDto[];
 
   constructor(data: Partial<CreateUserInfoDto>) {

@@ -31,6 +31,7 @@ import {
   FileFieldsInterceptor,
   FileInterceptor,
 } from '@nestjs/platform-express';
+import { ActionTapDto } from './dto/tap-delete.dto';
 
 @ApiTags('유저 API')
 @Controller('user-user')
@@ -91,10 +92,7 @@ export class UserUserController {
   @ApiConsumes('multipart/form-data') // 추가: 멀티파트 폼 데이터를 사용하도록 설정
   // @UseInterceptors(FileInterceptor('profile'))
   @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'profile', maxCount: 1 },
-      { name: 'link_img' },
-    ]),
+    FileFieldsInterceptor([{ name: 'profile' }, { name: 'link_img' }]),
   )
   @Patch('profile')
   async saveUserInfo(
@@ -108,7 +106,8 @@ export class UserUserController {
       link_img?: Express.Multer.File[];
     },
   ) {
-    if (files.profile || files.link_img) {
+    // console.log('ddfdf', dto.actions);
+    if (files?.profile || files?.link_img) {
       // const folderName = 'profile'; // 원하는 폴더명
       // const key = `${folderName}/${token.id}/${file.originalname}`;
 
@@ -120,7 +119,7 @@ export class UserUserController {
       );
     }
 
-    return await this.userUserService.saveUserInfo(token.id, dto);
+    return await this.userUserService.saveUserInfoNoFIle(token.id, dto);
   }
 
   @Get('check/page/:url')

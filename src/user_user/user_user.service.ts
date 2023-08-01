@@ -22,6 +22,7 @@ import { UserTapLinkEntity } from 'src/user_tap/entities/user_tap_link.entity';
 import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto';
 import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { ActionTapDto } from './dto/tap-delete.dto';
 
 @Injectable()
 export class UserUserService {
@@ -208,6 +209,7 @@ export class UserUserService {
   }
 
   //프로필,닉네임, 한줄 설명, 오늘의 링크 없으면 save , 있으면 update
+
   async saveUserInfo(
     id: number,
     dto: CreateUserInfoDto,
@@ -222,14 +224,16 @@ export class UserUserService {
       });
     }
 
-    console.log('dto.actions', dto.actions);
+    console.log('profile', profile);
 
+    // console.log('dto', dto);
     if (dto.actions) {
       if (typeof dto.actions === 'string') {
         dto.actions = JSON.parse(dto.actions);
       }
 
       for (let i = 0; i < dto.actions.length; i++) {
+        console.log('dto.actions', dto.actions[i], dto.actions[i].column);
         //탭 (text,link)삭제
         if (dto.actions[i].method == 'delete') {
           if (dto.actions[i].column == 'link') {
@@ -251,6 +255,7 @@ export class UserUserService {
         } else {
           //update 부분 <<프로필은 수정 완료,삭제까지
           if (dto.actions[i].column == 'profile') {
+            console.log('들들', profile[0]);
             const img_name = await this.changeImgUUID(profile[0].originalname);
 
             const folderName = 'profile'; // 원하는 폴더명
@@ -261,6 +266,7 @@ export class UserUserService {
             await this.userRepository.update(id, {
               profile: key,
             });
+
             //프로필 사진 변경
           } //text,link 수정이랑 toggle 수정하면됨
           else if (dto.actions[i].column == 'link') {
@@ -297,6 +303,121 @@ export class UserUserService {
               } as UpdateUserTapLinkDto;
               await this.updateTapLink(updateDto);
             }
+          } else if (dto.actions[i].column == 'text') {
+            const updateDto = {
+              tap_id: dto.actions[i]?.tap_id,
+              title: dto.actions[i]?.title,
+              context: dto.actions[i]?.context,
+              toggle_state: dto.actions[i]?.toggle_state,
+              folded_state: dto.actions[i]?.folded_state,
+            } as UpdateUserTapTextDto;
+
+            await this.updateTapText(updateDto);
+          }
+        }
+      }
+    }
+
+    const findResult = await this.userTodayLinkEntityRepository.findOne({
+      where: {
+        user_id: id,
+      },
+    });
+
+    //today_link 없으면 안일어남
+    if (dto.today_link) {
+      const saveResult = await this.saveUserUrl(
+        id,
+        new CreateUserUrlDto({
+          img: dto?.img,
+          title: dto.title,
+          url: dto.today_link,
+        }),
+      );
+      if (!findResult) {
+        //처음 등록
+        await this.userTodayLinkEntityRepository.save(
+          new UserTodyLinkEntity({
+            user_id: id,
+            today_link: dto?.today_link,
+            created_at: new Date(Date.now()),
+            url_id: saveResult.id,
+          }),
+        );
+      } else {
+        //업데이트
+        await this.userTodayLinkEntityRepository.update(id, {
+          today_link: dto?.today_link,
+          created_at: new Date(Date.now()),
+          url_id: saveResult.id,
+        });
+
+        // await this.saveUserUrl(
+        //   id,
+        //   new CreateUserUrlDto({
+        //     img: dto?.img,
+        //     title: dto.title,
+        //     url: dto.today_link,
+        //   }),
+        // );
+      }
+    }
+
+    return true;
+  }
+
+  async saveUserInfoNoFIle(id: number, dto: CreateUserInfoDto) {
+    //셋다 없다면 update 안일어남
+    if (dto.nickname || dto.explanation) {
+      await this.userRepository.update(id, {
+        nickname: dto?.nickname,
+        explanation: dto?.explanation,
+      });
+    }
+
+    // console.log('dto', dto);
+    if (dto.actions) {
+      if (typeof dto.actions === 'string') {
+        dto.actions = JSON.parse(dto.actions);
+      }
+
+      for (let i = 0; i < dto.actions.length; i++) {
+        console.log('dto.actions', dto.actions[i], dto.actions[i].column);
+        //탭 (text,link)삭제
+        if (dto.actions[i].method == 'delete') {
+          if (dto.actions[i].column == 'link') {
+            //===============탭 링크 이미지 삭제 넣어야할듯
+            if (dto.actions[i].link_img_delete) {
+              //링크 이미지 삭제
+              await this.setNullLinkImg(dto.actions[i].tap_id);
+            } else {
+              //링크 탭 삭제
+              await this.deleteTapLink(dto.actions[i].tap_id);
+            }
+          } else if (dto.actions[i].column == 'text') {
+            //테스트 탭 삭제
+            await this.deleteTapText(dto.actions[i].tap_id);
+          } else if (dto.actions[i].column == 'profile') {
+            await this.setNullProfileImg(id);
+            //======================s3에 이미지 삭제하는 코드 추가 또는 누적시킬거면 안써도됨
+          }
+        } else {
+          //update 부분 <<프로필은 수정 완료,삭제까지
+          if (dto.actions[i].column == 'profile') {
+            await this.setNullProfileImg(id);
+
+            //프로필 사진 변경
+          } //text,link 수정이랑 toggle 수정하면됨
+          else if (dto.actions[i].column == 'link') {
+            const updateDto = {
+              tap_id: dto.actions[i].tap_id,
+              title: dto.actions[i].title,
+              url: dto.actions[i].context,
+              toggle_state: dto.actions[i].toggle_state,
+              folded_state: dto.actions[i].folded_state,
+            } as UpdateUserTapLinkDto;
+
+            await this.updateTapLink(updateDto);
           } else if (dto.actions[i].column == 'text') {
             const updateDto = {
               tap_id: dto.actions[i]?.tap_id,

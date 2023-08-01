@@ -21,7 +21,7 @@ export class SetUpConfig {
     const config = new DocumentBuilder()
       .setTitle('GROWTHON SWAGGER')
       .setDescription('Growthon API description')
-      .setVersion('3.0.0')
+      .setVersion('3.0')
       .addBearerAuth(
         {
           type: 'http',
