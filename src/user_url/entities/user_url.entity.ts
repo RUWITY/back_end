@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDate, IsNumber, IsString } from 'class-validator';
+import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 import {
   Column,
   CreateDateColumn,
@@ -27,19 +27,21 @@ export class UserUrlEntity {
 
   @Column({ type: 'text', nullable: true })
   @IsString()
+  @IsOptional()
   @ApiPropertyOptional({
     description: 'img 썸네일',
     example: '.../png',
   })
-  img: string;
+  img?: string | undefined;
 
   @Column({ type: 'varchar', length: '225', nullable: true })
   @IsString()
+  @IsOptional()
   @ApiPropertyOptional({
     description: '제목',
     example: '고라니가 수영함',
   })
-  title: string;
+  title?: string | undefined;
 
   @Column({ type: 'varchar', length: '225', nullable: false })
   @IsString()
