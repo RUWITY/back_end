@@ -56,6 +56,7 @@ export class AppController {
     const filePath = join(
       __dirname,
       '..',
+      'src',
       '.well-known',
       'pki-validation',
       filename,
