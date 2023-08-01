@@ -21,6 +21,7 @@ import { UserTapTextEntity } from 'src/user_tap/entities/user_tap_text.entity';
 import { UserTapLinkEntity } from 'src/user_tap/entities/user_tap_link.entity';
 import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto';
 import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UserUserService {
@@ -168,7 +169,7 @@ export class UserUserService {
       },
     });
 
-    console.log('findTodayLink', findTodayLink);
+    // console.log('findTodayLink', findTodayLink);
 
     // if (!findTodayLink?.user_url && findTodayLink !== null) {
     //   findTodayLink.today_link = null;
@@ -210,7 +211,8 @@ export class UserUserService {
   async saveUserInfo(
     id: number,
     dto: CreateUserInfoDto,
-    file?: Express.Multer.File,
+    profile?: Express.Multer.File[],
+    link_img?: Express.Multer.File[],
   ) {
     //셋다 없다면 update 안일어남
     if (dto.nickname || dto.explanation) {
@@ -236,13 +238,17 @@ export class UserUserService {
             await this.deleteTapText(dto.actions[i].tap_id);
           } else if (dto.actions[i].column == 'profile') {
             await this.setNullProfileImg(id);
+            //======================s3에 이미지 삭제하는 코드 추가 또는 누적시킬거면 안써도됨
           }
         } else {
           //update 부분 <<프로필은 수정 완료,삭제까지
           if (dto.actions[i].column == 'profile') {
+            const img_name = await this.changeImgUUID(profile[0].originalname);
+
             const folderName = 'profile'; // 원하는 폴더명
-            const key = `${folderName}/${id}/${file.originalname}`;
-            await this.uploadFileDB(key, file);
+            const key = `${folderName}/${id}/${img_name}`;
+
+            await this.uploadFileDB(key, profile[0]);
 
             await this.userRepository.update(id, {
               profile: key,
@@ -250,22 +256,39 @@ export class UserUserService {
             //프로필 사진 변경
           } //text,link 수정이랑 toggle 수정하면됨
           else if (dto.actions[i].column == 'link') {
-            let key;
-            if(dto.actions[i].link_img){
-                 const folderName = 'link'; // 원하는 폴더명
-              key = `${folderName}/${id}/${dto.actions[i].tap_id}/${dto.actions[i].link_img.originalname}`;
-              await this.uploadFileDB(key, dto.actions[i].link_img);
-            }
+            console.log('들어옴link');
+            let key: any;
+            if (link_img[i]) {
+              const img_name = await this.changeImgUUID(
+                link_img[i].originalname,
+              );
 
-            const updateDto = {
-              tap_id: dto.actions[i].tap_id,
-              title: dto.actions[i].title,
-              url: dto.actions[i].context,
-              toggle_state: dto.actions[i].toggle_state,
-              folded_state: dto.actions[i].folded_state,
-              link_img: key,
-            } as UpdateUserTapLinkDto;
-            await this.updateTapLink(updateDto);
+              const folderName = 'link'; // 원하는 폴더명
+              key = `${folderName}/${id}/${dto.actions[i].tap_id}/${img_name}`;
+
+              await this.uploadFileDB(key, link_img[i]);
+
+              const updateDto = {
+                tap_id: dto.actions[i].tap_id,
+                title: dto.actions[i].title,
+                url: dto.actions[i].context,
+                img: key,
+                toggle_state: dto.actions[i].toggle_state,
+                folded_state: dto.actions[i].folded_state,
+                link_img: key,
+              } as UpdateUserTapLinkDto;
+              await this.updateTapLink(updateDto);
+            } else {
+              const updateDto = {
+                tap_id: dto.actions[i].tap_id,
+                title: dto.actions[i].title,
+                url: dto.actions[i].context,
+                toggle_state: dto.actions[i].toggle_state,
+                folded_state: dto.actions[i].folded_state,
+                link_img: key,
+              } as UpdateUserTapLinkDto;
+              await this.updateTapLink(updateDto);
+            }
           } else if (dto.actions[i].column == 'text') {
             const updateDto = {
               tap_id: dto.actions[i]?.tap_id,
@@ -327,6 +350,13 @@ export class UserUserService {
     }
 
     return true;
+  }
+
+  //uuid로 변경
+  async changeImgUUID(originalname: string) {
+    const ext = originalname.split('.').pop(); // 파일 확장자 추출
+    const filename = uuidv4(); // UUID 생성
+    return `${filename}.${ext}`; // UUID로 파일명 변경
   }
 
   //프사 빈 객체로 변경
@@ -533,6 +563,7 @@ export class UserUserService {
   }
 
   //---------------------------
+  //이미지 업로드
   async uploadFileDB(key: string, file: Express.Multer.File): Promise<string> {
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME, // 버킷 이름
@@ -551,6 +582,19 @@ export class UserUserService {
     }
   }
 
+  //이미지 삭제
+  async deleteImage(key: string): Promise<void> {
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key, // The object key (e.g., 'images/profile.png')
+    };
+
+    try {
+      await s3.deleteObject(params).promise();
+    } catch (error) {
+      throw error;
+    }
+  }
   //----------------------------------
   //그냥 이미지 잘 들어가나 확인 코드
   async uploadFile(key: string, body: Buffer): Promise<string> {

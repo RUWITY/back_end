@@ -4,11 +4,15 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Param,
+  Res,
   ValidationPipe,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserUserService } from './user_user/user_user.service';
+import { join } from 'path';
+import { createReadStream } from 'fs';
+import { Response } from 'express';
 
 @ApiTags('서버 연결 테스트 API+ page_url 확인 API')
 @Controller()
@@ -42,5 +46,21 @@ export class AppController {
 
       throw new InternalServerErrorException(e.message);
     }
+  }
+
+  @Get('.well-known/pki-validation/:filename')
+  async getValidationFile(
+    @Param('filename') filename: string,
+    @Res() res: Response,
+  ) {
+    const filePath = join(
+      __dirname,
+      '..',
+      '.well-known',
+      'pki-validation',
+      filename,
+    );
+    const fileStream = createReadStream(filePath);
+    fileStream.pipe(res);
   }
 }

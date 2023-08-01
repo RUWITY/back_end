@@ -49,14 +49,14 @@ export class ActionTapDto {
   })
   toggle_state?: boolean;
 
-  @IsOptional()
-  @ApiPropertyOptional({
-    type: 'string', // 기존의 type: 'string' 대신 type: 'string', format: 'binary' 사용
-    format: 'binary',
-    description: 'link_img',
-    example: 'image.png',
-  })
-  link_img?: Express.Multer.File;
+  // @IsOptional()
+  // @ApiPropertyOptional({
+  //   type: 'string', // 기존의 type: 'string' 대신 type: 'string', format: 'binary' 사용
+  //   format: 'binary',
+  //   description: 'link_img',
+  //   example: 'image.png',
+  // })
+  // link_img?: Express.Multer.File;
 
   @IsBoolean()
   @IsOptional()

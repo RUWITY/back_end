@@ -1,7 +1,7 @@
-import { Injectable, LoggerService as NestLoggerService } from "@nestjs/common";
-import { utilities } from "nest-winston";
-import * as winston from "winston";
-import { ExceptionIntf } from "./exception.interface";
+import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
+import { utilities } from 'nest-winston';
+import * as winston from 'winston';
+import { ExceptionIntf } from './exception.interface';
 
 @Injectable()
 export class LoggerService implements NestLoggerService {
@@ -13,14 +13,14 @@ export class LoggerService implements NestLoggerService {
 
       transports: [
         new winston.transports.Console({
-          level: process.env.NODE_ENV === "dev" ? "info" : "silly",
+          level: process.env.NODE_ENV === 'dev' ? 'info' : 'silly',
           format: winston.format.combine(
             winston.format.timestamp({
-              format: "YYYY-MM-DD hh:mm:ss A",
+              format: 'YYYY-MM-DD hh:mm:ss A',
             }),
-            utilities.format.nestLike("Poten_Day_306", {
+            utilities.format.nestLike('RUWITY_', {
               prettyPrint: true,
-            })
+            }),
           ),
         }),
         // 다른 원하는 트랜스포트를 추가할 수 있습니다 (파일, HTTP 등)
@@ -33,7 +33,7 @@ export class LoggerService implements NestLoggerService {
    * @param url context.url
    */
   req(method: string, url: string) {
-    this.logger.info("-> IN  : " + method + " " + url);
+    this.logger.info('-> IN  : ' + method + ' ' + url);
   }
 
   /**
@@ -42,7 +42,7 @@ export class LoggerService implements NestLoggerService {
    * @param url context.url
    */
   res(method: string, url: string) {
-    this.logger.info("<- OUT : " + method + " " + url);
+    this.logger.info('<- OUT : ' + method + ' ' + url);
   }
 
   log(message: string) {

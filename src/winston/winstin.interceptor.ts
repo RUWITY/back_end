@@ -5,10 +5,10 @@ import {
   CallHandler,
   Scope,
   HttpException,
-} from "@nestjs/common";
+} from '@nestjs/common';
 // import { Observable } from "rxjs";
-import { catchError, Observable, throwError, finalize } from "rxjs";
-import { LoggerService } from "./winston.service";
+import { catchError, Observable, throwError, finalize } from 'rxjs';
+import { LoggerService } from './winston.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class LoggingInterceptor implements NestInterceptor {
@@ -35,7 +35,7 @@ export class LoggingInterceptor implements NestInterceptor {
       }),
       finalize(() => {
         this.logger.res(incomingMessage.method, incomingMessage?.originalUrl);
-      })
+      }),
     );
   }
 }

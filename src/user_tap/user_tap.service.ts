@@ -194,6 +194,19 @@ export class UserTapService {
         toggle_state: true,
       },
     });
+
+    const textRe = [];
+    for (let i = 0; i < textResults.length; i++) {
+      textRe.push({
+        tap_id: textResults[i].id,
+        column: textResults[i].tap_type,
+        context: textResults[i].context,
+        folded_state: textResults[i].folded_state,
+        toggle_state: textResults[i].toggle_state,
+        created_at: textResults[i].created_at,
+      });
+    }
+
     const linkResults = await this.userTapLinkRepository.find({
       where: {
         user_id: user_id,
@@ -202,18 +215,42 @@ export class UserTapService {
       },
     });
 
+    const linkRe = [];
+    for (let i = 0; i < linkResults.length; i++) {
+      const img_url = [];
+      if (linkResults[i].img) {
+        img_url[i] = await this.getPreSignedUrl(linkResults[i].img);
+      }
+
+      linkRe.push({
+        tap_id: linkResults[i].id,
+        column: linkResults[i].tap_type,
+        url: linkResults[i].url,
+        img: img_url[i] || null,
+        folded_state: linkResults[i].folded_state,
+        toggle_state: linkResults[i].toggle_state,
+        created_at: linkResults[i].created_at,
+      });
+    }
+
     for (let i = 0; i < linkResults.length; i++) {
       if (linkResults[i].img) {
         linkResults[i].img = await this.getPreSignedUrl(linkResults[i].img);
       }
     }
 
-    const mergedResults = [...textResults, ...linkResults];
+    const mergedResults = [...textRe, ...linkRe];
     mergedResults.sort(
       (a, b) => b.created_at.getTime() - a.created_at.getTime(),
     );
 
-    return mergedResults;
+    const resultWithoutCreatedAt = mergedResults.map((item) => {
+      // result 배열의 각 요소에서 created_at 속성을 빼고 새로운 객체를 생성하여 반환
+      const { created_at, ...newItem } = item;
+      return newItem;
+    });
+
+    return resultWithoutCreatedAt;
   }
 
   //그냥 이미지 잘 나오나 확인 코드

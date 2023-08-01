@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
   ValidationPipe,
@@ -26,7 +27,10 @@ import { JwtAccessAuthGuard } from 'src/kakao-login/jwt-access.guard';
 import { UserUserService } from './user_user.service';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UserReportDto } from './dto/save-user-report.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 
 @ApiTags('유저 API')
 @Controller('user-user')
@@ -75,28 +79,45 @@ export class UserUserController {
     1. link -> {*column: 'link', method:'delete', *tap_id:1} \n
     2. text -> {*column: 'text', method:'delete', *tap_id:1} \n
     3. 프로필 이미지 -> {*column: 'profile', method:'delete'} \n
+    4. 탭 링크 이미지 -> {*column: 'link', method:'delete', *tap_id:1, *img:true} //개발중
     -------------------------------------------------------
     업데이트인 경우 \n
-    1. link -> {*column: 'link', *tap_id:1, title:'링크 제목', url:'링크 url', toggle_state:'true/false', folded_state:'true/false', link_img:'이미지 첨부' } \n
+    1. link -> {*column: 'link', *tap_id:1, title:'링크 제목', url:'링크 url', toggle_state:'true/false', folded_state:'true/false', 이미지는 여기가 아니라 profile쪽이랑 같은 곳입니다!link_img } \n
     2. text -> {*column: 'text', *tap_id:1, title:'텍스트 제목', context:'텍스트 내용', toggle_state:'true/false', folded_state:'true/false'} \n
     3. 프로필 이미지 -> profile에 이미지 넣고 , { column: 'profile' } \n
     `,
   })
   @ApiBody({ type: CreateUserInfoDto })
   @ApiConsumes('multipart/form-data') // 추가: 멀티파트 폼 데이터를 사용하도록 설정
-  @UseInterceptors(FileInterceptor('profile'))
+  // @UseInterceptors(FileInterceptor('profile'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'profile', maxCount: 1 },
+      { name: 'link_img' },
+    ]),
+  )
   @Patch('profile')
   async saveUserInfo(
     @CtxUser() token: JWTToken,
     @Body()
     dto: CreateUserInfoDto,
-    @UploadedFile() file: Express.Multer.File,
+    // @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      profile?: Express.Multer.File[];
+      link_img?: Express.Multer.File[];
+    },
   ) {
-    if (file) {
+    if (files.profile || files.link_img) {
       // const folderName = 'profile'; // 원하는 폴더명
       // const key = `${folderName}/${token.id}/${file.originalname}`;
 
-      return await this.userUserService.saveUserInfo(token.id, dto, file);
+      return await this.userUserService.saveUserInfo(
+        token.id,
+        dto,
+        files.profile,
+        files.link_img,
+      );
     }
 
     return await this.userUserService.saveUserInfo(token.id, dto);
