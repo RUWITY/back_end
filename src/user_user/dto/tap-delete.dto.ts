@@ -49,6 +49,14 @@ export class ActionTapDto {
   })
   toggle_state?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: '링크 이미지 삭제 true',
+    example: true,
+  })
+  img_delete?: boolean;
+
   // @IsOptional()
   // @ApiPropertyOptional({
   //   type: 'string', // 기존의 type: 'string' 대신 type: 'string', format: 'binary' 사용

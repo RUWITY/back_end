@@ -8,6 +8,6 @@ async function bootstrap() {
 
   const configService = new SetUpConfig(app);
   await configService.setUp();
-  await configService.setListen(3000);
+  await configService.setListen(80);
 }
 bootstrap();
