@@ -110,7 +110,9 @@ export class UserUserController {
     if (files?.profile || files?.link_img) {
       // const folderName = 'profile'; // 원하는 폴더명
       // const key = `${folderName}/${token.id}/${file.originalname}`;
-
+      // console.log('파일들어옴');
+      // console.log(files.profile);
+      // console.log(dto);
       return await this.userUserService.saveUserInfo(
         token.id,
         dto,

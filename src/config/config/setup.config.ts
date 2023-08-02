@@ -55,6 +55,8 @@ export class SetUpConfig {
         'https://accounts.kakao.com',
         'https://kauth.kakao.com',
         'https://jade-liger-7be6fa.netlify.app',
+        'https://linkg.netlify.app',
+        'https://linkg.netlify.app/*',
       ],
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,

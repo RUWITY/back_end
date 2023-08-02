@@ -41,7 +41,7 @@ export class KakaoLoginController {
     const { access_token, refresh_token } =
       await this.kakaoLoginService.kakaoLogin(kakao_user);
 
-    const redirectUrl = `http://localhost:3000/redirects/signin?access_token=${access_token}&refresh_token=${refresh_token}`;
+    const redirectUrl = `https://linkg.netlify.app/redirects/signin?access_token=${access_token}&refresh_token=${refresh_token}`;
     response.redirect(302, redirectUrl);
   }
 
