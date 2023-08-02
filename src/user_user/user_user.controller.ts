@@ -80,11 +80,11 @@ export class UserUserController {
     1. link -> {*column: 'link', method:'delete', *tap_id:1} \n
     2. text -> {*column: 'text', method:'delete', *tap_id:1} \n
     3. 프로필 이미지 -> {*column: 'profile', method:'delete'} \n
-    4. 탭 링크 이미지 -> {*column: 'link', method:'delete', *tap_id:1, *img:true} //개발중
+    4. 탭 링크 이미지 -> {*column: 'link', method:'delete', *tap_id:1, *link_img_delete:true} 
     -------------------------------------------------------
     업데이트인 경우 \n
     1. link -> {*column: 'link', *tap_id:1, title:'링크 제목', url:'링크 url', toggle_state:'true/false', folded_state:'true/false', 이미지는 여기가 아니라 profile쪽이랑 같은 곳입니다!link_img } \n
-    2. text -> {*column: 'text', *tap_id:1, title:'텍스트 제목', context:'텍스트 내용', toggle_state:'true/false', folded_state:'true/false'} \n
+    2. text -> {*column: 'text', *tap_id:1, context:'텍스트 내용', toggle_state:'true/false', folded_state:'true/false'} \n
     3. 프로필 이미지 -> profile에 이미지 넣고 , { column: 'profile' } \n
     `,
   })
@@ -108,11 +108,6 @@ export class UserUserController {
   ) {
     // console.log('ddfdf', dto.actions);
     if (files?.profile || files?.link_img) {
-      // const folderName = 'profile'; // 원하는 폴더명
-      // const key = `${folderName}/${token.id}/${file.originalname}`;
-      // console.log('파일들어옴');
-      // console.log(files.profile);
-      // console.log(dto);
       return await this.userUserService.saveUserInfo(
         token.id,
         dto,

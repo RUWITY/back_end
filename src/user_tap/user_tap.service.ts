@@ -27,7 +27,7 @@ export class UserTapService {
     const saveResult = await this.userTapTextRepository.save(
       new UserTapTextEntity({
         tap_type: 'text',
-        context: '텍스트',
+        context: '',
         user_id: id,
         folded_state: true,
       }),
@@ -225,6 +225,7 @@ export class UserTapService {
       linkRe.push({
         tap_id: linkResults[i].id,
         column: linkResults[i].tap_type,
+        title: linkResults[i].title,
         url: linkResults[i].url,
         img: img_url[i] || null,
         folded_state: linkResults[i].folded_state,

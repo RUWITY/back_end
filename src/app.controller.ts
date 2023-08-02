@@ -47,25 +47,4 @@ export class AppController {
       throw new InternalServerErrorException(e.message);
     }
   }
-
-  @Get('.well-known/pki-validation/:filename')
-  async getValidationFile(
-    @Param('filename') filename: string,
-    @Res() res: Response,
-  ) {
-    const filePath = join(__dirname, '.well-known', 'pki-validation', filename);
-    /**
-     *  const filePath = join(
-      __dirname,
-      '..',
-      'src',
-      '.well-known',
-      'pki-validation',
-      filename,
-    );
-     */
-    //path: '/usr/src/r_u_wity_back/app/src/.well-known/pki-validation/DE1AE31923806FA181FF332D5890E5F3.txt'
-    const fileStream = createReadStream(filePath);
-    fileStream.pipe(res);
-  }
 }

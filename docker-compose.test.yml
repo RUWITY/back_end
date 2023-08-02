@@ -21,9 +21,7 @@ services:
     depends_on:
       - server
     volumes:
-      # NOTE:appspec.yml 복사 경로 확인
       - ./nginx/nginx.dev-new.conf:/etc/nginx/nginx.conf
-      - ./nginx/cert:/etc/nginx/certs
     networks:
       - test-networks
 
@@ -31,6 +29,3 @@ networks:
   test-networks:
     driver: bridge
     name: test-networks
-# volumes:
-#   - ./nginx/nginx.dev-new.conf:/etc/nginx/nginx.conf
-#   - /home/ec2-user/nginx/certs:/etc/nginx/certs

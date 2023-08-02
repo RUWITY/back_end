@@ -188,6 +188,7 @@ export class UserUserService {
       explanation: findResult?.explanation || null,
       today_link: findTodayLink ? findTodayLink?.today_link : null,
       page_url: findPageUrl.page_url || null,
+      url_id: findTodayLink?.url_id,
       today_link_created_at: findTodayLink ? findTodayLink?.created_at : null,
       user_email: findResult?.user_email || null,
     };
@@ -382,7 +383,6 @@ export class UserUserService {
       }
 
       for (let i = 0; i < dto.actions.length; i++) {
-        console.log('dto.actions', dto.actions[i], dto.actions[i].column);
         //탭 (text,link)삭제
         if (dto.actions[i].method == 'delete') {
           if (dto.actions[i].column == 'link') {
@@ -421,7 +421,6 @@ export class UserUserService {
           } else if (dto.actions[i].column == 'text') {
             const updateDto = {
               tap_id: dto.actions[i]?.tap_id,
-              title: dto.actions[i]?.title,
               context: dto.actions[i]?.context,
               toggle_state: dto.actions[i]?.toggle_state,
               folded_state: dto.actions[i]?.folded_state,
@@ -504,6 +503,7 @@ export class UserUserService {
     const updateResult = await this.userTapLinkRepository.update(tap_id, {
       img: '',
     });
+    console.log(updateResult);
 
     if (!updateResult.affected) throw new Error('이미지 삭제 실패');
 
@@ -641,6 +641,17 @@ export class UserUserService {
     });
 
     if (!findOneResult) throw new NotFoundException('존재하지 않는 url입니다.');
+
+    const findUserLink = await this.userUrlRepository.find({
+      where: {
+        user_id: findOneResult.user_id,
+      },
+      order: {
+        created_at: 'DESC',
+      },
+    });
+
+    console.log('findUserLink', findUserLink);
 
     let profile_img;
     if (findOneResult.user?.profile)
@@ -823,7 +834,6 @@ export class UserUserService {
     }
 
     const updateResult = await this.userTapTextRepository.update(dto.tap_id, {
-      title: dto?.title,
       context: dto?.context,
       toggle_state: dto?.toggle_state,
       toggle_update_time: time,
