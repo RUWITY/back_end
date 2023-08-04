@@ -22,6 +22,7 @@ import { UserTapLinkEntity } from 'src/user_tap/entities/user_tap_link.entity';
 import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto';
 import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
 import { v4 as uuidv4 } from 'uuid';
+import * as sharp from 'sharp';
 import { ActionTapDto } from './dto/tap-delete.dto';
 
 @Injectable()
@@ -256,13 +257,12 @@ export class UserUserService {
         } else {
           //update 부분 <<프로필은 수정 완료,삭제까지
           if (dto.actions[i].column == 'profile') {
-            console.log('들들', profile[0]);
             const img_name = await this.changeImgUUID(profile[0].originalname);
 
             const folderName = 'profile'; // 원하는 폴더명
             const key = `${folderName}/${id}/${img_name}`;
 
-            await this.uploadFileDB(key, profile[0]);
+            await this.uploadFileDB(key, profile[0], 100);
 
             await this.userRepository.update(id, {
               profile: key,
@@ -281,7 +281,7 @@ export class UserUserService {
               const folderName = 'link'; // 원하는 폴더명
               key = `${folderName}/${id}/${dto.actions[i].tap_id}/${img_name}`;
 
-              await this.uploadFileDB(key, link_img[i]);
+              await this.uploadFileDB(key, link_img[i], 50);
 
               const updateDto = {
                 tap_id: dto.actions[i].tap_id,
@@ -651,7 +651,7 @@ export class UserUserService {
       },
     });
 
-    console.log('findUserLink', findUserLink);
+    // console.log('findUserLink', findUserLink);
 
     let profile_img;
     if (findOneResult.user?.profile)
@@ -663,14 +663,9 @@ export class UserUserService {
       user_nickname: findOneResult?.user?.nickname || undefined,
       profile_img: profile_img || undefined,
       explanation: findOneResult?.user?.explanation || undefined,
-      today_link:
-        findOneResult?.user?.today_link?.user_url !== null
-          ? findOneResult?.user?.today_link.today_link
-          : null,
-      created_at:
-        findOneResult?.user?.today_link?.user_url !== null
-          ? findOneResult?.user?.today_link.created_at
-          : null,
+      today_link_id: findOneResult?.user?.today_link?.url_id || null,
+      today_link: findOneResult?.user?.today_link?.today_link || null,
+      created_at: findOneResult?.user?.today_link?.created_at || null,
     };
 
     // return findOneResult;
@@ -715,12 +710,19 @@ export class UserUserService {
 
   //---------------------------
   //이미지 업로드
-  async uploadFileDB(key: string, file: Express.Multer.File): Promise<string> {
+  async uploadFileDB(
+    key: string,
+    file: Express.Multer.File,
+    img_size?: number,
+  ) {
+    const resizedImageBuffer = await sharp(file.buffer)
+      .resize(img_size, img_size)
+      .toBuffer();
+
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME, // 버킷 이름
       Key: key, // 파일의 S3 Key (폴더 경로 포함)
-      Body: file.buffer, // 파일의 바이너리 데이터
-      // ACL: process.env.AWS_BUCKET_ACL,
+      Body: resizedImageBuffer,
     };
 
     try {
