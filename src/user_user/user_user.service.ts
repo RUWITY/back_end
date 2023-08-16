@@ -23,7 +23,6 @@ import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto'
 import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as sharp from 'sharp';
-import { ActionTapDto } from './dto/tap-delete.dto';
 
 @Injectable()
 export class UserUserService {
@@ -657,6 +656,10 @@ export class UserUserService {
     if (findOneResult.user?.profile)
       profile_img = await this.getPreSignedUrl(findOneResult.user?.profile);
 
+    const tapList = await this.findAllByUserIdOrderByCreatedAtDesc(
+      findOneResult.user_id,
+    );
+
     return {
       user_id: findOneResult?.user_id || undefined,
       page_url: findOneResult?.page_url || undefined,
@@ -666,9 +669,78 @@ export class UserUserService {
       today_link_id: findOneResult?.user?.today_link?.url_id || null,
       today_link: findOneResult?.user?.today_link?.today_link || null,
       created_at: findOneResult?.user?.today_link?.created_at || null,
+      tap: tapList,
     };
 
     // return findOneResult;
+  }
+
+  async findAllByUserIdOrderByCreatedAtDesc(user_id: number): Promise<any[]> {
+    const textResults = await this.userTapTextRepository.find({
+      where: {
+        user_id: user_id,
+        delete_at: null,
+        toggle_state: true,
+      },
+    });
+
+    const textRe = [];
+    for (let i = 0; i < textResults.length; i++) {
+      textRe.push({
+        tap_id: textResults[i].id,
+        column: textResults[i].tap_type,
+        context: textResults[i].context,
+        folded_state: textResults[i].folded_state,
+        toggle_state: textResults[i].toggle_state,
+        created_at: textResults[i].created_at,
+      });
+    }
+
+    const linkResults = await this.userTapLinkRepository.find({
+      where: {
+        user_id: user_id,
+        delete_at: null,
+        toggle_state: true,
+      },
+    });
+
+    const linkRe = [];
+    for (let i = 0; i < linkResults.length; i++) {
+      const img_url = [];
+      if (linkResults[i].img) {
+        img_url[i] = await this.getPreSignedUrl(linkResults[i].img);
+      }
+
+      linkRe.push({
+        tap_id: linkResults[i].id,
+        column: linkResults[i].tap_type,
+        title: linkResults[i].title,
+        url: linkResults[i].url,
+        img: img_url[i] || null,
+        folded_state: linkResults[i].folded_state,
+        toggle_state: linkResults[i].toggle_state,
+        created_at: linkResults[i].created_at,
+      });
+    }
+
+    for (let i = 0; i < linkResults.length; i++) {
+      if (linkResults[i].img) {
+        linkResults[i].img = await this.getPreSignedUrl(linkResults[i].img);
+      }
+    }
+
+    const mergedResults = [...textRe, ...linkRe];
+    mergedResults.sort(
+      (a, b) => b.created_at.getTime() - a.created_at.getTime(),
+    );
+
+    const resultWithoutCreatedAt = mergedResults.map((item) => {
+      // result 배열의 각 요소에서 created_at 속성을 빼고 새로운 객체를 생성하여 반환
+      const { created_at, ...newItem } = item;
+      return newItem;
+    });
+
+    return resultWithoutCreatedAt;
   }
 
   async logoutTokenNull(user_id: number) {

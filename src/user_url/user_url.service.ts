@@ -11,7 +11,6 @@ export class UserUrlService {
     private readonly userUrlRepository: Repository<UserUrlEntity>,
   ) {}
 
-  //finish---------
   async updateUserUrlView(url_id: number) {
     const findOneResult = await this.userUrlRepository.findOne({
       where: {
@@ -32,7 +31,6 @@ export class UserUrlService {
     return true;
   }
 
-  //finish---------
   async deleteUserUrl(url_id: number) {
     const updateResult = await this.userUrlRepository.update(url_id, {
       delete_at: new Date(Date.now()),
@@ -43,7 +41,6 @@ export class UserUrlService {
     return true;
   }
 
-  //finish---------
   async findAllUserUrl(id: number) {
     const findResult = await this.userUrlRepository.find({
       where: {
@@ -54,19 +51,15 @@ export class UserUrlService {
         created_at: 'DESC',
       },
     });
-    console.log('findRes', findResult);
     for (let i = 0; i < findResult.length; i++) {
       if (findResult[i].img) {
         findResult[i].img = await this.getPreSignedUrl(findResult[i].img);
       }
-
-      console.log('img', findResult[i].img);
     }
 
     return findResult;
   }
 
-  //그냥 이미지 잘 나오나 확인 코드
   async getPreSignedUrl(key: string): Promise<string> {
     const imageParam = {
       Bucket: process.env.AWS_BUCKET_NAME,
