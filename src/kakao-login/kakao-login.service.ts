@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserUserDto } from 'src/user_user/dto/create-user_user.dto';
 import { UserEntity } from 'src/user_user/entities/user_user.entity';
 import { UserUserService } from 'src/user_user/user_user.service';
@@ -9,7 +9,7 @@ export class KakaoLoginService {
   constructor(private readonly userService: UserUserService) {}
 
   async kakaoLogin(kakao_user: KakaoLoginUserDto) {
-    const { kakao_id, nickname, profile_image, email } = kakao_user;
+    const { kakao_id, email } = kakao_user;
 
     const findResult = await this.userService.findOAuthUser(kakao_id);
 
@@ -19,8 +19,6 @@ export class KakaoLoginService {
       const data = new CreateUserUserDto({
         kakao_id: kakao_id,
         user_email: email,
-        // nickname: nickname,
-        // profile: profile_image,
       });
 
       saveResult = await this.userService.saveUser(data);
@@ -48,7 +46,6 @@ export class KakaoLoginService {
     return { access_token: access_token, refresh_token: refresh_token };
   }
 
-  //finish---------
   async refreshTokencheck(refresh_token: string) {
     return await this.userService.refreshTokenCheck(refresh_token);
   }
