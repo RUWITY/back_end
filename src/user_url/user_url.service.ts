@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserUrlEntity } from './entities/user_url.entity';
 import { Repository } from 'typeorm';
 import { s3 } from 'src/config/config/s3.config';
+import { CreateUserUrlDto } from './dto/create-user_url.dto';
 
 @Injectable()
 export class UserUrlService {
@@ -70,5 +71,32 @@ export class UserUrlService {
     const preSignedUrl = await s3.getSignedUrlPromise('getObject', imageParam);
 
     return preSignedUrl;
+  }
+
+  async saveUserUrl(user_id: number, dto: CreateUserUrlDto) {
+    const saveResult = await this.userUrlRepository.save(
+      new UserUrlEntity({
+        img: dto.img,
+        title: dto.title,
+        url: dto.url,
+        view: 0,
+        user_id: user_id,
+      }),
+    );
+
+    return saveResult;
+  }
+
+  async findOneUserUrl(url_id: number) {
+    const findResult = await this.userUrlRepository.findOne({
+      where: {
+        id: url_id,
+      },
+    });
+
+    if (!findResult)
+      throw new NotFoundException('존재하지 않는 url_id 입니다.');
+
+    return findResult;
   }
 }

@@ -15,14 +15,13 @@ import { UserPageEntity } from './entities/user_page.entity';
 import { UserReportDto } from './dto/save-user-report.dto';
 import { UserTodyLinkEntity } from './entities/user_today_link.entity';
 import { CreateUserUrlDto } from 'src/user_url/dto/create-user_url.dto';
-import { UserUrlEntity } from 'src/user_url/entities/user_url.entity';
 import { s3 } from 'src/config/config/s3.config';
-import { UserTapLinkEntity } from 'src/user_tap/entities/user_tap_link.entity';
 import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto';
 import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as sharp from 'sharp';
 import { UserTapService } from 'src/user_tap/user_tap.service';
+import { UserUrlService } from 'src/user_url/user_url.service';
 
 @Injectable()
 export class UserUserService {
@@ -41,10 +40,9 @@ export class UserUserService {
     @InjectRepository(UserTodyLinkEntity)
     private readonly userTodayLinkEntityRepository: Repository<UserTodyLinkEntity>,
 
-    @InjectRepository(UserUrlEntity)
-    private readonly userUrlRepository: Repository<UserUrlEntity>,
-
     private readonly userTapService: UserTapService,
+
+    private readonly userUrlService: UserUrlService,
   ) {}
 
   async findOAuthUser(kakao_id: number) {
@@ -190,21 +188,6 @@ export class UserUserService {
     };
   }
 
-  //모든 url 기록되는 곳
-  async saveUserUrl(id: number, dto: CreateUserUrlDto) {
-    const saveResult = await this.userUrlRepository.save(
-      new UserUrlEntity({
-        img: dto.img,
-        title: dto.title,
-        url: dto.url,
-        view: 0,
-        user_id: id,
-      }),
-    );
-
-    return saveResult;
-  }
-
   //프로필,닉네임, 한줄 설명, 오늘의 링크 없으면 save , 있으면 update
 
   async saveUserInfo(
@@ -324,7 +307,16 @@ export class UserUserService {
 
     //today_link 없으면 안일어남
     if (dto.today_link) {
-      const saveResult = await this.saveUserUrl(
+      // const saveResult = await this.saveUserUrl(
+      //   id,
+      //   new CreateUserUrlDto({
+      //     img: dto?.img,
+      //     title: dto.title,
+      //     url: dto.today_link,
+      //   }),
+      // );
+
+      const saveResult = await this.userUrlService.saveUserUrl(
         id,
         new CreateUserUrlDto({
           img: dto?.img,
@@ -332,6 +324,7 @@ export class UserUserService {
           url: dto.today_link,
         }),
       );
+
       if (!findResult) {
         //처음 등록
         await this.userTodayLinkEntityRepository.save(
@@ -438,7 +431,7 @@ export class UserUserService {
 
     //today_link 없으면 안일어남
     if (dto.today_link) {
-      const saveResult = await this.saveUserUrl(
+      const saveResult = await this.userUrlService.saveUserUrl(
         id,
         new CreateUserUrlDto({
           img: dto?.img,
@@ -446,6 +439,7 @@ export class UserUserService {
           url: dto.today_link,
         }),
       );
+
       if (!findResult) {
         //처음 등록
         await this.userTodayLinkEntityRepository.save(
@@ -593,14 +587,7 @@ export class UserUserService {
 
   //finish---------
   async updateTodayLink(user_id: number, url_id: number) {
-    const findResult = await this.userUrlRepository.findOne({
-      where: {
-        id: url_id,
-      },
-    });
-
-    if (!findResult)
-      throw new NotFoundException('존재하지 않는 url_id 입니다.');
+    const findResult = await this.userUrlService.findOneUserUrl(url_id);
 
     const updateResult = await this.userTodayLinkEntityRepository.update(
       user_id,
@@ -627,17 +614,6 @@ export class UserUserService {
     });
 
     if (!findOneResult) throw new NotFoundException('존재하지 않는 url입니다.');
-
-    const findUserLink = await this.userUrlRepository.find({
-      where: {
-        user_id: findOneResult.user_id,
-      },
-      order: {
-        created_at: 'DESC',
-      },
-    });
-
-    // console.log('findUserLink', findUserLink);
 
     let profile_img;
     if (findOneResult.user?.profile)
