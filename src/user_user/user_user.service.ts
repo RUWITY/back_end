@@ -20,8 +20,9 @@ import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto'
 import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as sharp from 'sharp';
-import { UserTapService } from 'src/user_tap/service/user_tap_text.service';
+import { UserTapTextService } from 'src/user_tap/service/user_tap_text.service';
 import { UserUrlService } from 'src/user_url/user_url.service';
+import { UserTapLinkService } from 'src/user_tap/service/user_tap_link.service';
 
 @Injectable()
 export class UserUserService {
@@ -40,7 +41,9 @@ export class UserUserService {
     @InjectRepository(UserTodyLinkEntity)
     private readonly userTodayLinkEntityRepository: Repository<UserTodyLinkEntity>,
 
-    private readonly userTapService: UserTapService,
+    private readonly userTapTextService: UserTapTextService,
+
+    private readonly userTapLinkService: UserTapLinkService,
 
     private readonly userUrlService: UserUrlService,
   ) {}
@@ -204,8 +207,6 @@ export class UserUserService {
       });
     }
 
-    console.log('profile', profile);
-
     // console.log('dto', dto);
     if (dto.actions) {
       if (typeof dto.actions === 'string') {
@@ -220,14 +221,18 @@ export class UserUserService {
             //===============탭 링크 이미지 삭제 넣어야할듯
             if (dto.actions[i].link_img_delete) {
               //링크 이미지 삭제
-              await this.userTapService.deleteImgTapLink(dto.actions[i].tap_id);
+              await this.userTapLinkService.deleteImgTapLink(
+                dto.actions[i].tap_id,
+              );
             } else {
               //링크 탭 삭제
-              await this.userTapService.deleteTapLink(dto.actions[i].tap_id);
+              await this.userTapLinkService.deleteTapLink(
+                dto.actions[i].tap_id,
+              );
             }
           } else if (dto.actions[i].column == 'text') {
             //테스트 탭 삭제
-            await this.userTapService.deleteTapText(dto.actions[i].tap_id);
+            await this.userTapTextService.deleteTapText(dto.actions[i].tap_id);
           } else if (dto.actions[i].column == 'profile') {
             await this.setNullProfileImg(id);
             //======================s3에 이미지 삭제하는 코드 추가 또는 누적시킬거면 안써도됨
@@ -249,7 +254,6 @@ export class UserUserService {
             //프로필 사진 변경
           } //text,link 수정이랑 toggle 수정하면됨
           else if (dto.actions[i].column == 'link') {
-            console.log('들어옴link');
             let key: any;
             if (link_img[i]) {
               const img_name = await this.changeImgUUID(
@@ -271,7 +275,7 @@ export class UserUserService {
                 link_img: key,
               } as UpdateUserTapLinkDto;
 
-              await this.userTapService.updateTapLink(updateDto);
+              await this.userTapLinkService.updateTapLink(updateDto);
             } else {
               const updateDto = {
                 tap_id: dto.actions[i].tap_id,
@@ -282,7 +286,7 @@ export class UserUserService {
                 link_img: key,
               } as UpdateUserTapLinkDto;
 
-              await this.userTapService.updateTapLink(updateDto);
+              await this.userTapLinkService.updateTapLink(updateDto);
             }
           } else if (dto.actions[i].column == 'text') {
             const updateDto = {
@@ -293,7 +297,7 @@ export class UserUserService {
               folded_state: dto.actions[i]?.folded_state,
             } as UpdateUserTapTextDto;
 
-            await this.userTapService.updateTapText(updateDto);
+            await this.userTapTextService.updateTapText(updateDto);
           }
         }
       }
@@ -307,15 +311,6 @@ export class UserUserService {
 
     //today_link 없으면 안일어남
     if (dto.today_link) {
-      // const saveResult = await this.saveUserUrl(
-      //   id,
-      //   new CreateUserUrlDto({
-      //     img: dto?.img,
-      //     title: dto.title,
-      //     url: dto.today_link,
-      //   }),
-      // );
-
       const saveResult = await this.userUrlService.saveUserUrl(
         id,
         new CreateUserUrlDto({
@@ -370,15 +365,19 @@ export class UserUserService {
             //===============탭 링크 이미지 삭제 넣어야할듯
             if (dto.actions[i].link_img_delete) {
               //링크 이미지 삭제
-              await this.userTapService.deleteImgTapLink(dto.actions[i].tap_id);
+              await this.userTapLinkService.deleteImgTapLink(
+                dto.actions[i].tap_id,
+              );
             } else {
               //링크 탭 삭제
-              await this.userTapService.deleteTapLink(dto.actions[i].tap_id);
+              await this.userTapLinkService.deleteTapLink(
+                dto.actions[i].tap_id,
+              );
             }
           } else if (dto.actions[i].column == 'text') {
             //테스트 탭 삭제
             // await this.deleteTapText(dto.actions[i].tap_id);
-            await this.userTapService.deleteTapText(dto.actions[i].tap_id);
+            await this.userTapTextService.deleteTapText(dto.actions[i].tap_id);
           } else if (dto.actions[i].column == 'profile') {
             await this.setNullProfileImg(id);
             //======================s3에 이미지 삭제하는 코드 추가 또는 누적시킬거면 안써도됨
@@ -399,7 +398,7 @@ export class UserUserService {
               folded_state: dto.actions[i].folded_state,
             } as UpdateUserTapLinkDto;
 
-            await this.userTapService.updateTapLink(updateDto);
+            await this.userTapLinkService.updateTapLink(updateDto);
           } else if (dto.actions[i].column == 'text') {
             const updateDto = {
               tap_id: dto.actions[i]?.tap_id,
@@ -408,7 +407,7 @@ export class UserUserService {
               folded_state: dto.actions[i]?.folded_state,
             } as UpdateUserTapTextDto;
 
-            await this.userTapService.updateTapText(updateDto);
+            await this.userTapTextService.updateTapText(updateDto);
           }
         }
       }
@@ -621,7 +620,7 @@ export class UserUserService {
   }
 
   async findAllByUserIdOrderByCreatedAtDesc(user_id: number): Promise<any[]> {
-    const textResults = await this.userTapService.findTapText(user_id);
+    const textResults = await this.userTapTextService.findTapText(user_id);
 
     const textRe = [];
     for (let i = 0; i < textResults.length; i++) {
@@ -635,7 +634,7 @@ export class UserUserService {
       });
     }
 
-    const linkResults = await this.userTapService.findTapLink(user_id);
+    const linkResults = await this.userTapLinkService.findTapLink(user_id);
 
     const linkRe = [];
     for (let i = 0; i < linkResults.length; i++) {

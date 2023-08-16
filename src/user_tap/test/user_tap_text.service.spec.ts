@@ -3,7 +3,6 @@ import { Repository, UpdateResult } from 'typeorm';
 import { UserTapTextEntity } from '../entities/user_tap_text.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { mockRepository } from 'src/mock/mock.repository';
-import { UserTapLinkEntity } from '../entities/user_tap_link.entity';
 import { UpdateUserTapTextDto } from '../dto/update-user-tap-text.dto';
 import { UserTapTextService } from '../service/user_tap_text.service';
 
