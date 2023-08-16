@@ -17,12 +17,12 @@ import { UserTodyLinkEntity } from './entities/user_today_link.entity';
 import { CreateUserUrlDto } from 'src/user_url/dto/create-user_url.dto';
 import { UserUrlEntity } from 'src/user_url/entities/user_url.entity';
 import { s3 } from 'src/config/config/s3.config';
-import { UserTapTextEntity } from 'src/user_tap/entities/user_tap_text.entity';
 import { UserTapLinkEntity } from 'src/user_tap/entities/user_tap_link.entity';
 import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto';
 import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as sharp from 'sharp';
+import { UserTapService } from 'src/user_tap/user_tap.service';
 
 @Injectable()
 export class UserUserService {
@@ -44,11 +44,7 @@ export class UserUserService {
     @InjectRepository(UserUrlEntity)
     private readonly userUrlRepository: Repository<UserUrlEntity>,
 
-    @InjectRepository(UserTapTextEntity)
-    private readonly userTapTextRepository: Repository<UserTapTextEntity>,
-
-    @InjectRepository(UserTapLinkEntity)
-    private readonly userTapLinkRepository: Repository<UserTapLinkEntity>,
+    private readonly userTapService: UserTapService,
   ) {}
 
   async findOAuthUser(kakao_id: number) {
@@ -241,14 +237,14 @@ export class UserUserService {
             //===============탭 링크 이미지 삭제 넣어야할듯
             if (dto.actions[i].link_img_delete) {
               //링크 이미지 삭제
-              await this.setNullLinkImg(dto.actions[i].tap_id);
+              await this.userTapService.deleteImgTapLink(dto.actions[i].tap_id);
             } else {
               //링크 탭 삭제
-              await this.deleteTapLink(dto.actions[i].tap_id);
+              await this.userTapService.deleteTapLink(dto.actions[i].tap_id);
             }
           } else if (dto.actions[i].column == 'text') {
             //테스트 탭 삭제
-            await this.deleteTapText(dto.actions[i].tap_id);
+            await this.userTapService.deleteTapText(dto.actions[i].tap_id);
           } else if (dto.actions[i].column == 'profile') {
             await this.setNullProfileImg(id);
             //======================s3에 이미지 삭제하는 코드 추가 또는 누적시킬거면 안써도됨
@@ -291,7 +287,8 @@ export class UserUserService {
                 folded_state: dto.actions[i].folded_state,
                 link_img: key,
               } as UpdateUserTapLinkDto;
-              await this.updateTapLink(updateDto);
+
+              await this.userTapService.updateTapLink(updateDto);
             } else {
               const updateDto = {
                 tap_id: dto.actions[i].tap_id,
@@ -301,7 +298,8 @@ export class UserUserService {
                 folded_state: dto.actions[i].folded_state,
                 link_img: key,
               } as UpdateUserTapLinkDto;
-              await this.updateTapLink(updateDto);
+
+              await this.userTapService.updateTapLink(updateDto);
             }
           } else if (dto.actions[i].column == 'text') {
             const updateDto = {
@@ -312,7 +310,7 @@ export class UserUserService {
               folded_state: dto.actions[i]?.folded_state,
             } as UpdateUserTapTextDto;
 
-            await this.updateTapText(updateDto);
+            await this.userTapService.updateTapText(updateDto);
           }
         }
       }
@@ -388,14 +386,15 @@ export class UserUserService {
             //===============탭 링크 이미지 삭제 넣어야할듯
             if (dto.actions[i].link_img_delete) {
               //링크 이미지 삭제
-              await this.setNullLinkImg(dto.actions[i].tap_id);
+              await this.userTapService.deleteImgTapLink(dto.actions[i].tap_id);
             } else {
               //링크 탭 삭제
-              await this.deleteTapLink(dto.actions[i].tap_id);
+              await this.userTapService.deleteTapLink(dto.actions[i].tap_id);
             }
           } else if (dto.actions[i].column == 'text') {
             //테스트 탭 삭제
-            await this.deleteTapText(dto.actions[i].tap_id);
+            // await this.deleteTapText(dto.actions[i].tap_id);
+            await this.userTapService.deleteTapText(dto.actions[i].tap_id);
           } else if (dto.actions[i].column == 'profile') {
             await this.setNullProfileImg(id);
             //======================s3에 이미지 삭제하는 코드 추가 또는 누적시킬거면 안써도됨
@@ -416,7 +415,7 @@ export class UserUserService {
               folded_state: dto.actions[i].folded_state,
             } as UpdateUserTapLinkDto;
 
-            await this.updateTapLink(updateDto);
+            await this.userTapService.updateTapLink(updateDto);
           } else if (dto.actions[i].column == 'text') {
             const updateDto = {
               tap_id: dto.actions[i]?.tap_id,
@@ -425,7 +424,7 @@ export class UserUserService {
               folded_state: dto.actions[i]?.folded_state,
             } as UpdateUserTapTextDto;
 
-            await this.updateTapText(updateDto);
+            await this.userTapService.updateTapText(updateDto);
           }
         }
       }
@@ -491,18 +490,6 @@ export class UserUserService {
     const updateResult = await this.userRepository.update(user_id, {
       profile: '',
     });
-
-    if (!updateResult.affected) throw new Error('이미지 삭제 실패');
-
-    return true;
-  }
-
-  //링크 빈 객체로 변경
-  async setNullLinkImg(tap_id: number) {
-    const updateResult = await this.userTapLinkRepository.update(tap_id, {
-      img: '',
-    });
-    console.log(updateResult);
 
     if (!updateResult.affected) throw new Error('이미지 삭제 실패');
 
@@ -676,13 +663,7 @@ export class UserUserService {
   }
 
   async findAllByUserIdOrderByCreatedAtDesc(user_id: number): Promise<any[]> {
-    const textResults = await this.userTapTextRepository.find({
-      where: {
-        user_id: user_id,
-        delete_at: null,
-        toggle_state: true,
-      },
-    });
+    const textResults = await this.userTapService.findTapText(user_id);
 
     const textRe = [];
     for (let i = 0; i < textResults.length; i++) {
@@ -696,13 +677,7 @@ export class UserUserService {
       });
     }
 
-    const linkResults = await this.userTapLinkRepository.find({
-      where: {
-        user_id: user_id,
-        delete_at: null,
-        toggle_state: true,
-      },
-    });
+    const linkResults = await this.userTapService.findTapLink(user_id);
 
     const linkRe = [];
     for (let i = 0; i < linkResults.length; i++) {
@@ -851,71 +826,5 @@ export class UserUserService {
     const preSignedUrl = await s3.getSignedUrlPromise('getObject', imageParam);
 
     return preSignedUrl;
-  }
-
-  //링크 삭제
-  async deleteTapLink(id: number) {
-    const updateResult = await this.userTapLinkRepository.update(id, {
-      delete_at: new Date(Date.now()),
-    });
-
-    if (!updateResult.affected) throw new Error('tap 삭제 실패');
-
-    return true;
-  }
-
-  //테스트 삭제
-  async deleteTapText(tap_id: number) {
-    const updateResult = await this.userTapTextRepository.update(tap_id, {
-      delete_at: new Date(Date.now()),
-    });
-
-    if (!updateResult.affected) throw new Error('tap 삭제 실패');
-
-    return true;
-  }
-
-  //link 수정
-  async updateTapLink(dto: UpdateUserTapLinkDto) {
-    let time: any;
-    if (dto.toggle_state !== undefined && dto.toggle_state !== null) {
-      time = new Date(Date.now());
-    } else {
-      time = undefined;
-    }
-
-    const updateResult = await this.userTapLinkRepository.update(dto.tap_id, {
-      title: dto?.title,
-      url: dto?.url,
-      img: dto?.link_img,
-      toggle_state: dto?.toggle_state,
-      toggle_update_time: time,
-      folded_state: dto?.folded_state,
-    });
-
-    if (!updateResult.affected) throw new Error('텍스트 내용 수정 실패');
-
-    return true;
-  }
-
-  //text 수정
-  async updateTapText(dto: UpdateUserTapTextDto) {
-    let time: any;
-    if (dto.toggle_state !== undefined && dto.toggle_state !== null) {
-      time = new Date(Date.now());
-    } else {
-      time = undefined;
-    }
-
-    const updateResult = await this.userTapTextRepository.update(dto.tap_id, {
-      context: dto?.context,
-      toggle_state: dto?.toggle_state,
-      toggle_update_time: time,
-      folded_state: dto?.folded_state,
-    });
-
-    if (!updateResult.affected) throw new Error('텍스트 내용 수정 실패');
-
-    return true;
   }
 }

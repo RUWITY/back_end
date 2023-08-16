@@ -8,5 +8,6 @@ import { JsonWebTokenModule } from 'src/jwt.module';
   imports: [EntitiesModule, JsonWebTokenModule],
   controllers: [UserTapController],
   providers: [UserTapService],
+  exports: [UserTapService],
 })
 export class UserTapModule {}
