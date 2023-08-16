@@ -8,6 +8,7 @@ import { SettingModule } from './config/config.module';
 import { UserUrlModule } from './user_url/user_url.module';
 import { UserTapModule } from './user_tap/user_tap.module';
 import { LoggerModule } from './winston/winston.module';
+import { JsonWebTokenModule } from './jwt.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { LoggerModule } from './winston/winston.module';
     UserUrlModule,
     UserTapModule,
     LoggerModule,
+    JsonWebTokenModule,
   ],
   controllers: [AppController],
   providers: [AppService],
