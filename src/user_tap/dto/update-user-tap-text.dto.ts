@@ -9,14 +9,6 @@ export class UpdateUserTapTextDto {
   })
   tap_id: number;
 
-  // @IsOptional()
-  // @IsString()
-  // @ApiPropertyOptional({
-  //   description: '텍스트 제목',
-  //   example: '텍스트 수정제목',
-  // })
-  // title?: string;
-
   @IsOptional()
   @IsString()
   @ApiPropertyOptional({

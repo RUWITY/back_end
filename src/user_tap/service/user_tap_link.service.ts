@@ -1,76 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserTapLinkEntity } from './entities/user_tap_link.entity';
-import { UserTapTextEntity } from './entities/user_tap_text.entity';
+import { UserTapLinkEntity } from '../entities/user_tap_link.entity';
 import { Repository } from 'typeorm';
 import { s3 } from 'src/config/config/s3.config';
-import { UpdateUserTapTextDto } from './dto/update-user-tap-text.dto';
-import { UpdateUserTapLinkDto } from './dto/update-user-tap-link.dto';
+import { UpdateUserTapLinkDto } from '../dto/update-user-tap-link.dto';
+import { UserTapTextService } from './user_tap_text.service';
 
 @Injectable()
-export class UserTapService {
+export class UserTapLinkService {
   constructor(
-    @InjectRepository(UserTapTextEntity)
-    private readonly userTapTextRepository: Repository<UserTapTextEntity>,
-
     @InjectRepository(UserTapLinkEntity)
     private readonly userTapLinkRepository: Repository<UserTapLinkEntity>,
+
+    private readonly userTapTextService: UserTapTextService,
   ) {}
-
-  async saveTapText(id: number) {
-    const saveResult = await this.userTapTextRepository.save(
-      new UserTapTextEntity({
-        tap_type: 'text',
-        context: '',
-        user_id: id,
-        folded_state: true,
-      }),
-    );
-
-    return saveResult;
-  }
-
-  async findTapText(user_id: number) {
-    const textResults = await this.userTapTextRepository.find({
-      where: {
-        user_id: user_id,
-        delete_at: null,
-        toggle_state: true,
-      },
-    });
-
-    return textResults;
-  }
-
-  async deleteTapText(tap_id: number) {
-    const updateResult = await this.userTapTextRepository.update(tap_id, {
-      delete_at: new Date(Date.now()),
-    });
-
-    if (!updateResult.affected) throw new Error('tap 삭제 실패');
-
-    return true;
-  }
-
-  async updateTapText(dto: UpdateUserTapTextDto) {
-    let time: any;
-    if (dto.toggle_state !== undefined && dto.toggle_state !== null) {
-      time = new Date(Date.now());
-    } else {
-      time = undefined;
-    }
-
-    const updateResult = await this.userTapTextRepository.update(dto.tap_id, {
-      context: dto?.context,
-      toggle_state: dto?.toggle_state,
-      toggle_update_time: time,
-      folded_state: dto?.folded_state,
-    });
-
-    if (!updateResult.affected) throw new Error('텍스트 내용 수정 실패');
-
-    return true;
-  }
 
   async saveTapLink(id: number) {
     const saveResult = await this.userTapLinkRepository.save(
@@ -141,12 +84,9 @@ export class UserTapService {
   }
 
   async findAllByUserIdOrderByCreatedAtDesc(user_id: number): Promise<any[]> {
-    const textResults = await this.userTapTextRepository.find({
-      where: {
-        user_id: user_id,
-        delete_at: null,
-      },
-    });
+    const textResults = await this.userTapTextService.findTapTextToOwner(
+      user_id,
+    );
 
     const textRe = [];
     for (let i = 0; i < textResults.length; i++) {
@@ -187,11 +127,11 @@ export class UserTapService {
       });
     }
 
-    for (let i = 0; i < linkResults.length; i++) {
-      if (linkResults[i].img) {
-        linkResults[i].img = await this.getPreSignedUrl(linkResults[i].img);
-      }
-    }
+    // for (let i = 0; i < linkResults.length; i++) {
+    //   if (linkResults[i].img) {
+    //     linkResults[i].img = await this.getPreSignedUrl(linkResults[i].img);
+    //   }
+    // }
 
     const mergedResults = [...textRe, ...linkRe];
     mergedResults.sort(

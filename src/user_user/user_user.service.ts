@@ -20,7 +20,7 @@ import { UpdateUserTapLinkDto } from 'src/user_tap/dto/update-user-tap-link.dto'
 import { UpdateUserTapTextDto } from 'src/user_tap/dto/update-user-tap-text.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as sharp from 'sharp';
-import { UserTapService } from 'src/user_tap/user_tap.service';
+import { UserTapService } from 'src/user_tap/service/user_tap_text.service';
 import { UserUrlService } from 'src/user_url/user_url.service';
 
 @Injectable()
@@ -342,15 +342,6 @@ export class UserUserService {
           created_at: new Date(Date.now()),
           url_id: saveResult.id,
         });
-
-        // await this.saveUserUrl(
-        //   id,
-        //   new CreateUserUrlDto({
-        //     img: dto?.img,
-        //     title: dto.title,
-        //     url: dto.today_link,
-        //   }),
-        // );
       }
     }
 
@@ -457,15 +448,6 @@ export class UserUserService {
           created_at: new Date(Date.now()),
           url_id: saveResult.id,
         });
-
-        // await this.saveUserUrl(
-        //   id,
-        //   new CreateUserUrlDto({
-        //     img: dto?.img,
-        //     title: dto.title,
-        //     url: dto.today_link,
-        //   }),
-        // );
       }
     }
 
